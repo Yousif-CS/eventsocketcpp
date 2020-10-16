@@ -2,3 +2,8 @@
 A websocket event based library that allows for event based network programming written in C++.
 The API provides both client and server support. However, the implementation is purely on top of websockets
 which is language agnostic. 
+
+
+-----------------------------------------------------------------------
+## Dependencies:
+  - boost v.1.73.0 or above.
