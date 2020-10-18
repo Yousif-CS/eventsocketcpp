@@ -17,9 +17,7 @@ which is language agnostic.
 -----------------------------------------------------------------------
 ## How to use the library:
 
-  1) Run the build script "INSTALL.sh" which will install the required dependencies above.
+  Clone the repository or add it as a CMake ExternalProject. If you choose to clone it manually,
+  then you can also use find_package(eventsocketcpp) in Cmake and it will take care of building it.
   
-  2) change your directory to build/ and type the following command:
-   ```cmake -DCMAKE_FIND_ROOT_PATH=. .. ``` which will generate the required libeventsocket.a on linux.
-  
-  3) link against the library and include the header files and start hacking :D
+An example repository exists here: 
