@@ -26,9 +26,3 @@ ExternalProject_Add (
 )
 
 set(Boost_INCLUDE_DIRS ${CMAKE_CURRENT_BINARY_DIR}/${BOOST}/src/${BOOST}/)
-#find_package(Boost 1.73.0 REQUIRED COMPONENTS beast asio)
-#
-#if (Boost_FOUND)
-#		message(STATUS "Boost was found. Headers:  ${Boost_INCLUDE_DIR}")
-#		set(Boost_INCLUDE_DIRS ${Boost_INCLUDE_DIR})
-#endif(Boost_FOUND)

@@ -6,15 +6,14 @@ set(LIBRARY_OUTPUT_PATH ./lib)
 include_directories( 
 		PUBLIC
 			$<INSTALL_INTERFACE:include>
-			$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+			$<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include>
 		PRIVATE
-			${CMAKE_CURRENT_SOURCE_DIR}/src
+			${CMAKE_SOURCE_DIR}/src
 		)
 
-include_directories(${PROJECT_NAME} 
-		${Boost_INCLUDE_DIRS})
+include_directories(PUBLIC ${Boost_INCLUDE_DIRS})
 
-include_directories(${PROJECT_NAME} ${jsoncpp_INCLUDE_DIRS})
+include_directories(PUBLIC ${PROJECT_NAME} ${jsoncpp_INCLUDE_DIRS})
 
 file(
 	GLOB_RECURSE
