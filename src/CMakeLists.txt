@@ -34,7 +34,7 @@ include(GNUInstallDirs)
 # set(INSTALL_CONFIGDIR ${CMAKE_SOURCE_DIR}/cmake/EventSocketCpp)
 
 install(
-	TARGET eventsocketcpp
+	TARGETS ${PROJECT_NAME}
 	EXPORT eventsocketcpp-export
 	LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
 	ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}

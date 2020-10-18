@@ -49,7 +49,7 @@ install(
 )
 
 export(EXPORT eventsocketcpp-export
-		FILE ${CMAKE_CURRENT_BINARY_DIR}/EventSocketCppTargets.cmake
+		FILE ${CMAKE_INSTALL_LIBDIR}/cmake/eventsocketcpp/EventSocketCppTargets.cmake
 		NAMESPACE EventSocketCpp::)
 
 # register package
