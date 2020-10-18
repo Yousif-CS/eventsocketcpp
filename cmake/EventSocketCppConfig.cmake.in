@@ -3,9 +3,9 @@ include(CMakeFindDependencyMacro)
 
 list(APPEND CMAKE_MODULE_PATH ${EventSocketCpp_CMAKE_DIR})
 
-
+@PACKAGE_INIT@
 if(NOT TARGET EventSocketCpp::EventSocketCpp)
-		include("${EventSocketCpp_CMAKE_DIR}/EventSocketCppTargets.cmake")
+		include("${CMAKE_CURRENT_BINARY_DIR}/EventSocketCppTargets.cmake")
 endif()
 
-set(EVENTSOCKETCPP_lIBRARIES EventSocketCpp::EventSocketCpp)
+set(EVENTSOCKETCPP_LIBRARIES EventSocketCpp::EventSocketCpp)
