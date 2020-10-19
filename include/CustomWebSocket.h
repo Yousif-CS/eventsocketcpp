@@ -42,16 +42,20 @@ namespace RedBack {
 
 	private:
 
-		// Error 
+		//Debugging function
 		void log(boost::beast::websocket::frame_type, boost::beast::string_view);
-
-		//Setup the callbacks and the correct http headers
+		
+		//Setup the callbacks and the http headers
 		void configure(T t);
 
-		// Run by a seperate thread to keep listening for messages
+		// Listens for messages
 		void run(std::future<void> exitFuture);
+		
 		std::function < void(std::string payload) > receive_callback_;
+	
 		std::unique_ptr<boost::beast::websocket::stream<T>> ws_;
+
+		// To safely stop the listening thread
 		std::promise<void> exitSignal_;
 	};
 

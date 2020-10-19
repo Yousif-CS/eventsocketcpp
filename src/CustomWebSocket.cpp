@@ -19,7 +19,6 @@ namespace RedBack {
 	template<typename T>
 	WebSocket<T>::WebSocket(T t) {
 		configure(std::move(t));
-		//std::thread(&WebSocket<T>::start, this, std::move(t)).detach();
 	}
 
 	template<typename T>
@@ -29,6 +28,8 @@ namespace RedBack {
 
 	template<typename T>
 	void WebSocket<T>::log(websocket::frame_type ft, boost::beast::string_view payload) {
+
+#ifdef REDBACK_DUBUG
 		switch (ft) {
 			case websocket::frame_type::close:
 				std::cout << "Connection Closed: " << payload << std::endl;
@@ -39,6 +40,7 @@ namespace RedBack {
 			case websocket::frame_type::pong:
 				std::cout << "Pong Received" << payload << std::endl;
 		}
+#endif // REDBACK_DEBUG
 	}
 
 	template<typename T>
@@ -51,7 +53,7 @@ namespace RedBack {
 			set_on_receive([this](std::string payload) {
 #ifdef REDBACK_DEBUG
 				std::cout << "Received: " << payload << std::endl;
-#endif // _REDBACK_MEDIA_DEBUG
+#endif // _REDBACK_DEBUG
 
 				send(payload);
 			});
@@ -68,12 +70,13 @@ namespace RedBack {
 					log(ft, payload);
 				}
 			);
-#endif // _REDBACK_MEDIA_DEBUG
+#endif // _REDBACK_DEBUG
 
 			ws_->accept();
-			reading_thread_ = std::make_unique<std::thread>(&WebSocket<T>::run, this);
-			reading_thread_->detach();
+
+			std::thread(&WebSocket<T>::run, this, std::move(exitSignal_.get_future())).detach();
 		}
+
 		catch (beast::system_error const& e) {
 			if (e.code() != websocket::error::closed)
 				std::cerr << "Error Establishing Websocket: " << e.what() << std::endl;
@@ -84,16 +87,10 @@ namespace RedBack {
 	}
 
 	template<typename T>
-	void WebSocket<T>::start(T t) {
-		configure(std::move(t));
-		run(std::move(exitSignal_.get_future()));
-	}
-
-	template<typename T>
 	void WebSocket<T>::run(std::future<void> exitFuture) {
 
 		try {
-			while(exitFuture.wait_for(std::chrono::milliseconds(1) == std::future_status::timeout)) {
+			while(exitFuture.wait_for(std::chrono::milliseconds(1)) == std::future_status::timeout) {
 				beast::flat_buffer buffer;
 				ws_->text(ws_->got_text());
 				ws_->async_read(buffer, [this, &buffer](error_code const& ec, std::size_t nbytes){
