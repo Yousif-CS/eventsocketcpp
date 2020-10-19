@@ -22,7 +22,7 @@ install(
 	NAMESPACE
 		EventSocketCpp::
 	DESTINATION
-	${CMAKE_CURRENT_BINARY_DIR}/cmake/eventsocketcpp
+	${CMAKE_INSTALL_LIBDIR}/cmake/eventsocketcpp
 )
 
 # Create a ConfigVersion.cmake file
@@ -36,7 +36,7 @@ write_basic_package_version_file(
 configure_package_config_file(
 	${CMAKE_CURRENT_SOURCE_DIR}/cmake/EventSocketCppConfig.cmake.in
 	${CMAKE_CURRENT_BINARY_DIR}/EventSocketCppConfig.cmake
-	INSTALL_DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/cmake/eventsocketcpp
+	INSTALL_DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/eventsocketcpp
 	PATH_VARS
 		CMAKE_INSTALL_LIBDIR
 )
@@ -45,11 +45,11 @@ configure_package_config_file(
 install(
 	FILES ${CMAKE_CURRENT_BINARY_DIR}/EventSocketCppConfig.cmake
 		  ${CMAKE_CURRENT_BINARY_DIR}/EventSocketCppConfigVersion.cmake
-		  DESTINATION	${CMAKE_CURRENT_BINARY_DIR}/cmake/eventsocketcpp
+		  DESTINATION	${CMAKE_INSTALL_LIBDIR}/cmake/eventsocketcpp
 )
 
 export(EXPORT eventsocketcpp-export
-		FILE ${CMAKE_CURRENT_BINARY_DIR}/cmake/eventsocketcpp/EventSocketCppTargets.cmake
+		FILE ${CMAKE_INSTALL_LIBDIR}/cmake/eventsocketcpp/EventSocketCppTargets.cmake
 		NAMESPACE EventSocketCpp::)
 
 # register package
