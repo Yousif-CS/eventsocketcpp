@@ -5,7 +5,7 @@ list(APPEND CMAKE_MODULE_PATH ${EventSocketCpp_CMAKE_DIR})
 
 @PACKAGE_INIT@
 if(NOT TARGET EventSocketCpp::EventSocketCpp)
-		include("${CMAKE_CURRENT_BINARY_DIR}/cmake/EventSocketCppTargets.cmake")
+		include("${CMAKE_INSTALL_LIBDIR}/cmake/EventSocketCppTargets.cmake")
 endif()
 
 set(EVENTSOCKETCPP_LIBRARIES EventSocketCpp::EventSocketCpp)
