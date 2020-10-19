@@ -1,7 +1,7 @@
 // A listening server which handles incoming connection requests
 #include <iostream>
 #include "boost/asio.hpp"
-#include "ListeningServer.h"
+#include "eventsocketcpp/server/ListeningServer.h"
 
 namespace net = boost::asio;
 

@@ -1,19 +1,7 @@
-cmake_minimum_required(VERSION 3.10.0)
+cmake_minimum_required(VERSION 3.11.0)
 project(eventsocketcpp VERSION 0.1.0)
 
 set(LIBRARY_OUTPUT_PATH ./lib)
-
-include_directories( 
-		PUBLIC
-			$<INSTALL_INTERFACE:include>
-			$<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include>
-		PRIVATE
-			${CMAKE_SOURCE_DIR}/src
-		)
-
-include_directories(PUBLIC ${Boost_INCLUDE_DIRS})
-
-include_directories(PUBLIC ${PROJECT_NAME} ${jsoncpp_INCLUDE_DIRS})
 
 file(
 	GLOB_RECURSE
@@ -23,11 +11,22 @@ file(
 
 add_library(${PROJECT_NAME} ${MY_SOURCE_FILES})
 
+target_include_directories(${PROJECT_NAME} 
+		PUBLIC
+			$<INSTALL_INTERFACE:include>
+			$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+		PRIVATE
+			${CMAKE_CURRENT_SOURCE_DIR}/src
+		)
+
+# target_include_directories(${PROJECT_NAME} PUBLIC ${Boost_INCLUDE_DIRS})
+
+# target_include_directories(${PROJECT_NAME} PUBLIC ${jsoncpp_INCLUDE_DIRS})
+
+
 target_link_libraries(${PROJECT_NAME}
 		PUBLIC
-			${JSONCPP_LIBS}
-		PRIVATE
-			-lpthread) 
+			jsoncpp -lpthread)
 
 
 include(GNUInstallDirs)
@@ -36,7 +35,10 @@ include(GNUInstallDirs)
 install(
 	TARGETS ${PROJECT_NAME}
 	EXPORT eventsocketcpp-export
-	ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+	LIBRARY DESTINATION lib
+	ARCHIVE DESTINATION lib
+	RUNTIME DESTINATION bin
+	INCLUDES DESTINATION include
 )
 
 set_target_properties(${PROJECT_NAME} PROPERTIES EXPORT_NAME EventSocketCpp)
