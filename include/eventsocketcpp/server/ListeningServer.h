@@ -17,26 +17,28 @@ namespace RedBack {
 /*
 	A server that accepts incoming websocket connections
 */
-class ListeningServer {
+	namespace Server {
+		class ListeningServer {
 
-	public:
+			public:
 
-		ListeningServer(std::string host, unsigned short port)
-			:host_(host), port_(port)
-		{
-		}
+				ListeningServer(std::string host, unsigned short port)
+					:host_(host), port_(port)
+				{
+				}
 
-		ListeningServer(const ListeningServer&) = delete;
-		ListeningServer& operator=(const ListeningServer&) = delete;
+				ListeningServer(const ListeningServer&) = delete;
+				ListeningServer& operator=(const ListeningServer&) = delete;
 
-		std::shared_ptr<WebSocket<tcp::socket>> accept();
+				std::shared_ptr<WebSocket<tcp::socket>> accept();
 
-	private:
+			private:
 
-		std::vector<std::shared_ptr<WebSocket<tcp::socket>>> websockets;
-		net::io_context io_context_{ 1 };
-		unsigned short port_;
-		std::string host_;
-	};
+				std::vector<std::shared_ptr<WebSocket<tcp::socket>>> websockets;
+				net::io_context io_context_{ 1 };
+				unsigned short port_;
+				std::string host_;
+		};
+	} // Server
 } // RedBack
 #endif
