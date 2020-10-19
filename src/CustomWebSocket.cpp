@@ -86,18 +86,19 @@ namespace RedBack {
 	template<typename T>
 	void WebSocket<T>::start(T t) {
 		configure(std::move(t));
-		run();
+		run(std::move(exitSignal_.get_future()));
 	}
 
 	template<typename T>
-	void WebSocket<T>::run() {
+	void WebSocket<T>::run(std::future<void> exitFuture) {
 
 		try {
-			for (;;) {
+			while(exitFuture.wait_for(std::chrono::milliseconds(1) == std::future_status::timeout)) {
 				beast::flat_buffer buffer;
 				ws_->text(ws_->got_text());
-				ws_->read(buffer);
-				receive_callback_(buffers_to_string(buffer.data()));
+				ws_->async_read(buffer, [this, &buffer](error_code const& ec, std::size_t nbytes){
+					receive_callback_(buffers_to_string(buffer.data()));
+				});
 			}
 		}
 		catch (beast::system_error const& e) {

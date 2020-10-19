@@ -2,6 +2,7 @@
 #define CUSTOMWEBSOCKETH
 
 #include <thread>
+#include <future>
 
 #include "boost/beast/websocket.hpp"
 #include "boost/beast/core.hpp"
@@ -35,19 +36,19 @@ namespace RedBack {
 		// Close the connection
 		void close() { ws_->close(boost::beast::websocket::close_code::normal); }
 
-		virtual ~WebSocket() { }
+		virtual ~WebSocket() {
+			exitSignal_.set_value();
+		}
 
 	private:
 		void log(boost::beast::websocket::frame_type, boost::beast::string_view);
 		void configure(T t);
 		// Start the websocket and setup for receiving messages
 		void start(T t);
-		void run();
+		void run(std::future<void> exitFuture);
 		std::function < void(std::string payload) > receive_callback_;
 		std::unique_ptr<boost::beast::websocket::stream<T>> ws_;
-
-		//the thread that keeps reading data from the other end
-		std::unique_ptr<std::thread> reading_thread_ = nullptr; 
+		std::promise<void> exitSignal_;
 	};
 
 } // RedBack
