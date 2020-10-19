@@ -7,7 +7,7 @@
 #include "boost/asio.hpp"
 #include "boost/asio/ip/tcp.hpp"
 #include "boost/beast/core/buffers_to_string.hpp"
-#include "CustomWebSocket.h"
+#include "eventsocketcpp/server/CustomWebSocket.h"
 
 namespace beast = boost::beast;
 using namespace boost::beast;
