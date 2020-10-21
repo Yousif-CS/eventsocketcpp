@@ -25,6 +25,7 @@ namespace RedBack {
 				ListeningServer(std::string host, unsigned short port)
 					:host_(host), port_(port)
 				{
+					std::cout << "Here!" << std::endl;
 				}
 
 				ListeningServer(const ListeningServer&) = delete;

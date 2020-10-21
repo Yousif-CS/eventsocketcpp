@@ -17,6 +17,7 @@ using namespace boost::beast::websocket;
 
 namespace RedBack {
     namespace Client {
+		boost::asio::io_context ioc;
 
         void WebSocket::configure(){
 
@@ -33,7 +34,7 @@ namespace RedBack {
         }
 
         void WebSocket::connect(std::string host, unsigned short port){
-            boost::asio::ip::tcp::resolver resolver{ioc};
+            boost::asio::ip::tcp::resolver resolver{RedBack::Client::ioc};
 
             // Do a host search
             auto const results = resolver.resolve(host, std::to_string(port));

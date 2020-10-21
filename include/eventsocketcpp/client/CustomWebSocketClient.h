@@ -3,6 +3,10 @@
 #include "boost/beast/core.hpp"
 #include "boost/beast/websocket.hpp"
 
+using tcp = boost::asio::ip::tcp;
+namespace net = boost::asio;
+using namespace boost::beast::websocket;
+
 #include <future>
 
 namespace RedBack {
@@ -23,8 +27,8 @@ namespace RedBack {
                 receive_callback_ = callback;
             }
 
-            std::function<void(std::string)> get_on_receive(){ return receive_callback_; }
-            
+            std::function<void(std::string)> get_on_receive_callback(){ return receive_callback_; }
+
             void close() { ws_->close(boost::beast::websocket::close_code::normal); }
 
             ~WebSocket() {
@@ -46,7 +50,6 @@ namespace RedBack {
 			std::unique_ptr<boost::beast::websocket::stream<boost::asio::ip::tcp::socket>> ws_;
 			std::promise<void> exitSignal_;
             
-            static boost::asio::io_context ioc;
         };
     } // Client
 } // RedBack
