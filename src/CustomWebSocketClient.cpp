@@ -60,21 +60,16 @@ namespace RedBack {
             ws_->handshake(host, "/");
 
             // Start listening 
-            std::thread(&WebSocket::run, this, std::move(exitSignal_.get_future())).detach();
+            std::thread(&WebSocket::run, this).detach();
         }
 
-        void WebSocket::run(std::future<void> exitFuture){
+        void WebSocket::run(){
             try {
-				while(exitFuture.wait_for(std::chrono::milliseconds(1)) == std::future_status::timeout) {
+				while(true) {
 					beast::flat_buffer buffer;
 					ws_->text(ws_->got_text());
-					ws_->async_read(buffer, [this, &buffer](error_code const& ec, std::size_t nbytes){
-                        if (ec){
-							std::cerr << "Could not read payload" << std:: endl;
-							return;
-						}
-						receive_callback_(buffers_to_string(buffer.data()));
-					});
+					ws_->read(buffer);
+                    receive_callback_(buffers_to_string(buffer.data()));
 				}
 			}
 			catch (beast::system_error const& e) {

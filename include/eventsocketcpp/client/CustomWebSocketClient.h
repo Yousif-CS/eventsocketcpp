@@ -32,7 +32,6 @@ namespace RedBack {
             void close() { ws_->close(boost::beast::websocket::close_code::normal); }
 
             ~WebSocket() {
-                exitSignal_.set_value();
             }
 
         private:
@@ -44,11 +43,10 @@ namespace RedBack {
             void connect(std::string host, unsigned short port);
 
 			// Run by a seperate thread to keep listening for messages
-			void run(std::future<void> exitFuture);
+			void run();
 
 			std::function < void(std::string payload) > receive_callback_;
 			std::unique_ptr<boost::beast::websocket::stream<boost::asio::ip::tcp::socket>> ws_;
-			std::promise<void> exitSignal_;
             
         };
     } // Client
