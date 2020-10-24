@@ -23,3 +23,4 @@ target_link_libraries(client
 		PUBLIC
 		EventSocketCpp::EventSocketCpp)
 
+target_compile_options(server PRIVATE -ftemplate-backtrace-limit=0)

@@ -1,1 +1,7 @@
 build/*
+examples/build
+tests/build
+.vscode
+json/
+lib/
+*Targets*.cmake
