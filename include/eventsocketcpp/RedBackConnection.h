@@ -115,7 +115,7 @@ namespace RedBack {
 
             }
 
-            bool disconnect(){
+            void disconnect(){
 
                 if (isConnected())
                     boost::asio::post(asioContext, [this](){ ws.close(websocket::close_code::normal); });
@@ -238,10 +238,8 @@ namespace RedBack {
                             // Read failed
                             std::cerr << "[" << id << "]" << " Reading Header Failed" << std::endl;
                             // Only if it is not connected do we try and close it;
-                            if (! isConnected())
-                            {
-                                ws.close(websocket::close_code::abnormal);
-                            }
+                            if (!isConnected())
+                                disconnect();
                         }
                     }
                 );
@@ -263,7 +261,8 @@ namespace RedBack {
                     {
                         // Error reading body
                         std::cerr << "[" << id << "]" << " Reading Body Failed" << std::endl;
-                        ws.close(websocket::close_code::abnormal);
+                        if (!isConnected())
+                            disconnect();
                     }
                 });
             }
@@ -302,8 +301,8 @@ namespace RedBack {
                         else
                         {
                             std::cerr << "[" << id << "]" << " Writing Header Failed." << std::endl;
-                            ws.close(websocket::close_code::abnormal); 
-                        }
+                            if (!isConnected())
+                                disconnect();                        }
                         
                     });
             }
@@ -331,8 +330,8 @@ namespace RedBack {
                     {
                         // Could not read body
                         std::cerr << "[" << id << "]" << " Writing Body Failed." << std::endl;
-                        ws.close(websocket::close_code::abnormal);
-                    }
+                        if (!isConnected())
+                            disconnect();                    }
                     
                 });
             }
@@ -392,10 +391,13 @@ namespace RedBack {
                         // Add the connection to our list of connections
                         serverInterface->addConnection(this->shared_from_this());
 
-                        //perform handshake and assign them an id
-
+                        //Update the global ID now that this client has connected
                         serverInterface->addNewGlobalID();
+
                         this->startReading();
+
+                        //start accepting new connections
+                        serverInterface->waitForConnections();
                     }
                     else
                     {   

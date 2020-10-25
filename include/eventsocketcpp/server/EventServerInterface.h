@@ -37,10 +37,12 @@ namespace RedBack
 
             //TODO:
             virtual ~EventServerInterface()
-            {}
+            {
+                stop();
+            }
 
             // Start accepting connections Asynchronously
-            bool start()
+            bool start(size_t nThreads = 1)
             {
                 try
                 {
@@ -48,8 +50,11 @@ namespace RedBack
                     // asynchronously
                     waitForConnections();
                     
-                    // Start the context to perform the tasks
-                    threadContext = std::thread([this]() { asioContext.run(); });
+                    // Start the context to perform the tasks on the number of threads required
+                    for(size_t i = 0; i < nThreads; i++)
+                    {
+                        threadContexts.emplace_back([this]() { asioContext.run(); });
+                    }
 
                     return true;
                 }
@@ -65,7 +70,11 @@ namespace RedBack
             {
                 asioContext.stop();
 
-                if (threadContext.joinable()) threadContext.join();
+                for(size_t i = 0; i < threadContexts.size(); i++)
+                {
+                    if (threadContexts[i].joinable())
+                        threadContexts[i].join();
+                }
 
             }
             
@@ -235,9 +244,6 @@ namespace RedBack
                     //Parse requests, if any, 
                     parseRequests(ownedmsg);
 
-                    // Perform callback, if any (for example to invoke certain events)
-                    OnMessage(ownedmsg.owner, ownedmsg.message);
-
                     qMessagesIn.pop_front();
                 }
             }
@@ -380,6 +386,9 @@ namespace RedBack
                         //Set the flag to be forwarded;
                         owned_msg.message.header.config = Config::Forwarded;
 
+                        // Add the forwarder id
+                        owned_msg.message << owned_msg.owner->GetID();
+                        
                         //Sent to client
                         MessageClient(getConnection(recpID), owned_msg.message);
                         break;
@@ -387,11 +396,13 @@ namespace RedBack
 
                     // Default, there are no suitable requests, just return
                     default:
+                        // Perform callback, if any (for example to invoke certain event callbacks)
+                        OnMessage(owned_msg.owner, owned_msg.message);
                         return;
                 }
             }
             boost::asio::io_context asioContext;
-            std::thread threadContext;
+            std::vector<std::thread> threadContexts;
 
             boost::asio::ip::tcp::acceptor asioAcceptor;
             

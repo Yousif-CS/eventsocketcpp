@@ -22,7 +22,7 @@ namespace RedBack
             {}
 
             virtual ~EventClientInterface()
-            {
+            {   
                 disconnect();
             }
 
@@ -95,10 +95,7 @@ namespace RedBack
 
             void disconnect()
             {
-                if (isConnected())
-                {
-                    connection->disconnect();
-                }
+                connection->disconnect();
 
                 // Stop the context and its thread
                 asioContext.stop();
@@ -164,6 +161,8 @@ namespace RedBack
             {
                 msg.header.config = Config::Forward;
                 msg << id;
+
+                send(msg);
             }
 
             TSQueue<T> incomingMsgs()
@@ -173,32 +172,12 @@ namespace RedBack
 
         protected:
             // A callback to received messages
-            void OnMessage(Message<T> msg, std::unique_ptr<MetaConfig> config = nullptr)
+            void OnMessage(Message<T> msg)
             {
-                if (config != nullptr)
+                // Check if there are custom callbacks assigned 
+                if (callbacks.count(msg.header.id) != 0)
                 {
-                    if (config->roomID > 0)
-                    {
-                        OnRoomCreated(msg, config->roomID);
-                    }
-                    else if (config->broadcasterID > 0)
-                    {
-                        OnBroadCast(msg, config->broadcasterID);
-                    }
-                    else
-                    {
-                        OnForward(msg, config->forwarderID);
-                    } 
- 
-                }
-                else
-                {
-                    // Check if there are custom callbacks assigned 
-                    if (callbacks.count(msg.header.id) != 0)
-                    {
-                        callbacks.at(msg.header.id)(msg);
-                    }
-
+                    callbacks.at(msg.header.id)(msg);
                 }
             }
 
@@ -234,7 +213,7 @@ namespace RedBack
             }
 
             // Override: when a room is created
-            virtual void OnRoomCreated(Message<T> msg, uint32_t roomID)
+            virtual void OnRoomCreated(uint32_t roomID)
             {
 
             }
@@ -252,12 +231,10 @@ namespace RedBack
                 {
                     case Config::Broadcasted:
                     {
-                        // forwarder id
+                        // broadcaster id
                         uint32_t bID;
                         msg >> bID;
-                        auto mc = std::make_unique<MetaConfig>();
-                        mc->broadcasterID = bID;
-                        OnMessage(msg, std::move(mc));
+                        OnBroadCast(msg, bID);
                         break;
                     }
 
@@ -266,9 +243,7 @@ namespace RedBack
                         // the room id
                         uint32_t roomID;
                         msg >> roomID;
-                        auto mc = std::make_unique<MetaConfig>();
-                        mc->roomID = roomID;
-                        OnMessage(msg, std::move(mc));
+                        OnRoomCreated(roomID);
                         break;
                     }
 
@@ -279,7 +254,7 @@ namespace RedBack
                         uint32_t roomID;
                         msg >> roomID;
                         OnRoomJoined(roomID);
-
+                        break;
                     }
                     case Config::Forwarded:
                     {
@@ -287,9 +262,7 @@ namespace RedBack
                         // forwarder id
                         uint32_t fID;
                         msg >> fID;
-                        auto mc = std::make_unique<MetaConfig>();
-                        mc->forwarderID = fID;
-                        OnMessage(msg, std::move(mc));
+                        OnForward(msg, fID);
                         break;
                     }
                     default:

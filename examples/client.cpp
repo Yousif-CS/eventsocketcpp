@@ -21,6 +21,9 @@ protected:
     // Here we assign some event listeners when we connect to the server
     virtual void OnConnect() override
     {
+
+        std::cout << "[CLIENT] Connected!" << std::endl;
+
         OnEvent(EventTypes::World, [this](RedBack::Message<EventTypes> msg){
             
             std::string payload;
@@ -29,7 +32,10 @@ protected:
             std::cout << "[SERVER]" << " Sent: " <<  payload << std::endl; 
             
             //For example, when I receive event World, i will try and create a room
-            createRoom();
+            RedBack::Message<EventTypes> response;
+
+            response << "This is a broadcast message!";
+            broadcast(response);
         });
 
         RedBack::Message<EventTypes> msg;
@@ -52,40 +58,45 @@ protected:
     // Override: when a client broadcasts a message
     virtual void OnBroadCast(RedBack::Message<EventTypes> msg, uint32_t broadcasterID)
     {
-        if (msg.header.id == EventTypes::RandomNumber)
+        if (msg.header.id == EventTypes::Hello)
         {
-            int random;
-            msg >> random;
-            std::cout << "[" << broadcasterID << "]" << " Broadcasted a random number: " << random << std::endl;
+            std::string broadcasted;
+            msg >> broadcasted;
+            std::cout << "[" << broadcasterID << "]" << " Broadcasted: " << broadcasted << std::endl;
+
+            // forward a message to the broadcaster
+            RedBack::Message<EventTypes> payload;
+            payload << "Hello BroadCaster!";
+            forward(payload, broadcasterID);
         }
 
     }
 
     // Override: when a room is created, the server will send its id to all clients
     // and this callback is received 
-    virtual void OnRoomCreated(RedBack::Message<EventTypes> msg, uint32_t roomID)
-    {
-        // Try to join the room
-        joinRoom(roomID);
+    // virtual void OnRoomCreated(RedBack::Message<EventTypes> msg, uint32_t roomID)
+    // {
+    //     // Try to join the room
+    //     joinRoom(roomID);
 
-        // The OnJoinedRoom Callback will be invoked
-    }
+    //     // The OnJoinedRoom Callback will be invoked
+    // }
 
     // Override: when a room is joined
-    virtual void OnRoomJoined(uint32_t roomID)
-    {
-        // Try to send a random number to indicate a different client each time :D
-        RedBack::Message<EventTypes> msg;
-        msg.header.id = EventTypes::RandomNumber;
+    // virtual void OnRoomJoined(uint32_t roomID)
+    // {
+    //     // Try to send a random number to indicate a different client each time :D
+    //     RedBack::Message<EventTypes> msg;
+    //     msg.header.id = EventTypes::RandomNumber;
 
-        int max;
-        max = 1000; //set the upper bound to generate the random number
-        srand(time(0));
+    //     int max;
+    //     max = 1000; //set the upper bound to generate the random number
+    //     srand(time(0));
 
-        msg << rand()%max;
-        broadcastRoom(msg, roomID);
+    //     msg << rand()%max;
+    //     broadcastRoom(msg, roomID);
 
-    }
+    // }
 };
 
 
@@ -107,17 +118,26 @@ int main(int argc, char* argv[]){
 
     // Here we can keep processing messages blocking the main thread, 
     // or better, we can read messages on a seperate thread;
-    std::thread processMessages([&client]() { client.update(5, true); });
-    std::thread waitForKeyPress(PressAnyKeyLoop);
+    std::thread processMessages([&client]() {
 
-    processMessages.join();
-    waitForKeyPress.join();
+        while (!stop.load()){
+            client.update(5, false);
+        }
+
+    });
+    processMessages.detach();
     
     //wait for key process
     char newline[2];
     std::cin.getline(newline, 1);
-
+    
     stop = true;
 
     std::cout << "Disconnecting..." << std::endl;
+    
+    if (processMessages.joinable())
+    {
+        processMessages.join();
+    }
+    
 }

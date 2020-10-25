@@ -44,18 +44,21 @@ public:
 		return true;
 
 	}
-};
 
+	//When a client disconnect
+	virtual bool OnDisconnect(std::shared_ptr<RedBack::Connection<EventTypes>> conn) override
+	{
+		std::cout << "[" << conn->GetID() << "]" << " Disconnected" << std::endl;
+	}
+	
+};
 
 int main(int argc, char *argv[]){
 
 	EventServer server{60000};
 
-	server.start();
-
-	// server.OnEvent(EventTypes::Hello, [](RedBack::Message<EventTypes> msg){
-	// 	std::cout << "Received: " << std::to_string(msg.body) << std::endl;
-	// });
+	// run the context on 4 threads
+	server.start(5);
 
 	while(true)
 	{

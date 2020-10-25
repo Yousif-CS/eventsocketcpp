@@ -25,14 +25,6 @@ namespace RedBack {
 
 namespace RedBack {
     
-
-    // Holds the config meta information such as broadcaster id, forwarder id, room ids.
-    struct MetaConfig {
-        uint32_t roomID = 0;
-        uint32_t broadcasterID = 0;
-        uint32_t forwarderID = 0;
-    };
-
     // All possible configurations to the server/client
     enum class Config {
         Forward, Forwarded, BroadcastAll, BroadcastRoom, Broadcasted,
