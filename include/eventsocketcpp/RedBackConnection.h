@@ -7,9 +7,16 @@
 
 #pragma once
 
+// forward declaration because of dependencies
+namespace RedBack {
+    template<typename T>
+    class Connection;
+}
+
 #include <eventsocketcpp/RedBackCommon.h>
 #include <eventsocketcpp/RedBackMessage.h>
 #include <eventsocketcpp/RedBackTSQueue.h>
+#include <eventsocketcpp/server/EventServerInterface.h>
 
 namespace RedBack {
 
@@ -29,6 +36,15 @@ namespace RedBack {
             Connection(owner parent, boost::asio::io_context& ioContext, boost::asio::ip::tcp::socket socket, TSQueue<OwnedMessage<T>>& qIn)
             :asioContext(ioContext), qMessagesIn(qIn), ws(std::move(socket))
             {
+
+                if (parent == owner::server)
+                {
+                    // Set suggested timeout settings for the websocket
+                    ws.set_option(
+                        websocket::stream_base::timeout::suggested(
+                            beast::role_type::server));
+                }
+
                 ownerType = parent;
             }
 
@@ -37,6 +53,13 @@ namespace RedBack {
             Connection(owner parent, boost::asio::io_context& ioContext, TSQueue<OwnedMessage<T>>& qIn)
             :asioContext(ioContext), qMessagesIn(qIn), ws(boost::asio::make_strand(ioContext))
             {
+                if (parent == owner::client)
+                {
+                    // Set suggested timeout settings for the websocket
+                    ws.set_option(
+                        websocket::stream_base::timeout::suggested(
+                        beast::role_type::client));
+                }
                 ownerType = parent;
             }
             
@@ -52,7 +75,7 @@ namespace RedBack {
             }
 
             // Set their id
-            uint32_t SetID(uint32_t _id) { id = _id; }
+            void SetID(uint32_t _id) { id = _id; }
 
             // Connect to a server given the hostname and the port.
             void connectToServer(boost::asio::ip::tcp::resolver::results_type& endpoints, std::function<void(void)> clientOnConnect){
@@ -70,27 +93,11 @@ namespace RedBack {
                         beast::bind_front_handler(
                             &Connection<T>::OnConnect,
                             this->shared_from_this(), clientOnConnect));
-                // async_connect(endpoints,
-                // [this, endpoints](boost::system::error_code& ec, boost::asio::ip::tcp::resolver::iterator i){
-                    
-                //     if (!ec){
-                //         handshake(endpoints.begin()->host_name());
-                //     }
-                
-                // });
-                // // boost::asio::async_connect(endpoints,
-                // [this, endpoints](boost::system::error_code& ec, boost::asio::ip::tcp::resolver::iterator i){
-                    
-                //     if (!ec){
-                //         handshake(endpoints.begin()->host_name());
-                //     }
-                
-                // });
 
             }
 
-            // Connect to a client and give them their ID
-            void connectToClient(uint32_t ID = 0){
+            // Connect to a client to start reading
+            void startReading(){
                 
                 if (ownerType == owner::client)
                     return;
@@ -133,7 +140,7 @@ namespace RedBack {
 
             // Asynchronously perform handshake as a server
             // ID: the id of the newly connected client
-            void handshake(uint32_t ID)
+            void handshake(Server::EventServerInterface<T> * serverInterface)
             {
                 if (ownerType == owner::client)
                     return;
@@ -141,19 +148,12 @@ namespace RedBack {
                 // Set the host field of the handshake request before accepting it
                 ws.set_option(websocket::stream_base::decorator(
                     [](websocket::response_type& res) {
-                        res.set(http::field::server, "RedBack-Media-Server 1.0");
+                        res.set(http::field::server, "RedBack-Event-Server 1.0");
                     }
                 ));
 
                 // Accept the handshake upgrade request received from the client
-                ws.async_accept(
-                [this, ID](std::error_code ec)
-                {
-                    if (!ec)
-                    {
-                        connectToClient(ID);
-                    }
-                });
+                ws.async_accept(beast::bind_front_handler(&Connection<T>::OnAccept, this->shared_from_this(), serverInterface));
             }
 
         protected:
@@ -237,7 +237,11 @@ namespace RedBack {
                         {
                             // Read failed
                             std::cerr << "[" << id << "]" << " Reading Header Failed" << std::endl;
-                            ws.close(websocket::close_code::abnormal);
+                            // Only if it is not connected do we try and close it;
+                            if (! isConnected())
+                            {
+                                ws.close(websocket::close_code::abnormal);
+                            }
                         }
                     }
                 );
@@ -311,7 +315,7 @@ namespace RedBack {
                     return;
 
 
-                boost::asio::async_write(ws.next_layer(), boost::asio::buffer(&qMessagesOut.front().body, qMessagesOut.front().body.size()),
+                boost::asio::async_write(ws.next_layer(), boost::asio::buffer(qMessagesOut.front().body.data(), qMessagesOut.front().body.size()),
                 [this](std::error_code ec, size_t length)
                 {
                     if (!ec)
@@ -361,12 +365,6 @@ namespace RedBack {
                     // Turn of the timeout in the tcp stream as websockets have their own
                     beast::get_lowest_layer(ws).expires_never();
 
-                    // Set suggested timeout
-                    ws.set_option(
-                    websocket::stream_base::timeout::suggested(
-                        beast::role_type::client));
-
-
                     // Set a decorator to change the User-Agent of the handshake
                     ws.set_option(websocket::stream_base::decorator(
                         [](websocket::request_type& req)
@@ -383,21 +381,27 @@ namespace RedBack {
 
             }
 
-            // // When hosts are resolved
-            // void OnResolve(beast::error_code ec, tcp::resolver::results_type results)
-            // {
-            //     if(!ec)
-            //     {
-            //         // Set the timeout for the operation
-            //         beast::get_lowest_layer(ws).expires_after(std::chrono::seconds(30));
+            // Called when the handshake is accepted
+            void OnAccept(Server::EventServerInterface<T>* serverInterface, beast::error_code ec)
+            {
+                if (!ec)
+                {   
+                    // After accepting, let the user perform any callbacks
+                    if (serverInterface->OnConnect(this->shared_from_this()))
+                    {
+                        // Add the connection to our list of connections
+                        serverInterface->addConnection(this->shared_from_this());
 
-            //         // Make the connection on the IP address we get from a lookup
-            //         beast::get_lowest_layer(ws).async_connect(
-            //             results,
-            //             beast::bind_front_handler(
-            //             &Connection<T>::OnConnect,
-            //             this->shared_from_this()));
-            //     }
-            // }
+                        //perform handshake and assign them an id
+
+                        serverInterface->addNewGlobalID();
+                        this->startReading();
+                    }
+                    else
+                    {   
+                        std::cerr << "[-----]" << " Connection refused." << std::endl;
+                    }
+                }
+            }
     };
 } // RedBack

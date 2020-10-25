@@ -67,14 +67,14 @@ namespace RedBack
                 if (bWait) qMessagesIn.wait();
 
                 // Start reading messages
-                for(size_t nMessages = 0; nMessages < nMaxMessages; nMessages++)
+                for(size_t nMessages = 0; nMessages < nMaxMessages && !qMessagesIn.isEmpty(); nMessages++)
                 {
                     OwnedMessage<T> msg = qMessagesIn.front();
 
                     // Parse the message for specific configurations 
                     // such as a response to create room, forwarded message
                     // It also calls the OnMessage callback after configuration
-                    parseConfigs(msg);
+                    parseConfigs(msg.message);
 
                     //Pop the message out
                     qMessagesIn.pop_front();
@@ -113,6 +113,57 @@ namespace RedBack
             {
                 if (isConnected())
                     connection->send(msg);
+            }
+
+            // broadcast message to all connected clients on the server
+            void broadcast(Message<T>& msg)
+            {
+                msg.header.config = Config::BroadcastAll;
+
+                send(msg);
+            }
+
+            // broadcast a message to all clients in a certain room
+            void broadcastRoom(Message<T>& msg, uint32_t roomID)
+            {
+                msg.header.config = Config::BroadcastRoom;
+
+                msg << roomID;
+
+                send(msg);
+                
+            }
+
+            // create a room on the server,
+            // If the room is created, the OnRoomCreated callback is called
+            void createRoom()
+            {
+                Message<T> msg;
+                msg.header.config = Config::CreateRoom;
+                // we just want the msg to have some payload so it wouldn't get discarded
+                msg << Config::CreateRoom;
+                send(msg);
+            }
+
+            // join a created room
+
+            void joinRoom(uint32_t roomID)
+            {
+                Message<T> msg;
+                
+                msg.header.config = Config::JoinRoom;
+
+                msg << roomID;
+
+                send(msg);
+            }
+
+            // 
+            // forward a message to a client with id 
+            void forward(Message<T>& msg, uint32_t id)
+            {
+                msg.header.config = Config::Forward;
+                msg << id;
             }
 
             TSQueue<T> incomingMsgs()
@@ -188,6 +239,12 @@ namespace RedBack
 
             }
 
+            // Override: when a room is joined
+            virtual void OnRoomJoined(uint32_t roomID)
+            {
+
+            }
+
             // Parse the different configurations of the message
             bool parseConfigs(Message<T> msg)
             {
@@ -215,6 +272,15 @@ namespace RedBack
                         break;
                     }
 
+                    case Config::OnRoomJoined:
+                    {
+
+                        // invoke the callback
+                        uint32_t roomID;
+                        msg >> roomID;
+                        OnRoomJoined(roomID);
+
+                    }
                     case Config::Forwarded:
                     {
                         

@@ -2,12 +2,24 @@
 // This server is asynchronous; meaning it runs on the io_context 
 // which also means there are no extra threads involved per new connection
 
+#pragma once
+
+// forward declaration for dependencies
+namespace RedBack
+{
+    namespace Server
+    {
+        template<typename T>
+        class EventServerInterface;
+    }
+}
+
 #include <eventsocketcpp/RedBackCommon.h>
 #include <eventsocketcpp/RedBackMessage.h>
 #include <eventsocketcpp/RedBackTSQueue.h>
 #include <eventsocketcpp/RedBackConnection.h>
 
-#pragma once
+
 
 namespace RedBack 
 {
@@ -71,26 +83,14 @@ namespace RedBack
                             std::cout << "[SERVER] New Connection: " << socket.remote_endpoint() << "\n";
 
                             std::shared_ptr<Connection<T>> connection = std::make_shared<Connection<T>>(Connection<T>::owner::server, asioContext, std::move(socket), qMessagesIn);
-                            // Check whether the user wants to accept connections
                             
                             // Give them an id and if the user does not want to accept the connection, take it back
                             connection->SetID(globalID);
 
-                            if (OnConnect(connection))
-                            {
-                                // Add the connection to our list of connections
-                                deqConnections.push_front(connection);
+                            // Do the handshake and establish the connection, and call the on connect callback from
+                            // this class 
+                            connection->handshake(this);
 
-                                //perform handshake and assign them an id
-                                connection->handshake(globalID);
-
-                                globalID++;
-                            }
-                            else
-                            {   
-                                std::cerr << "[-----]" << " Connection refused." << std::endl;
-                            }
-                            
                         }
                         else 
                         {
@@ -103,7 +103,7 @@ namespace RedBack
             void MessageClient(std::shared_ptr<Connection<T>> connection, const Message<T>& msg)
             {
                 //If the client is not connected, we dispose of them
-                if (connection->isConnected())
+                if (connection && connection->isConnected())
                 {
                     connection->send(msg);
                 }
@@ -129,6 +129,18 @@ namespace RedBack
                     deqConnections.erase(std::remove(deqConnections.begin(), deqConnections.end(), connection), deqConnections.end());
                 }
                 
+            }
+            
+            // Increases the global ID by 1
+            void addNewGlobalID()
+            {
+                globalID++;
+            }
+            
+            // Adds a new connection to the list of connections
+            void addConnection(std::shared_ptr<Connection<T>> conn)
+            {
+                deqConnections.push_front(conn);
             }
 
             void MessageRoom(const Message<T>& msg, uint32_t roomID, std::shared_ptr<Connection<T>> except)
@@ -256,9 +268,7 @@ namespace RedBack
                 }
                 return true;
             }
-
-        protected:
-
+            
             // When a new connection is requested, you can
             // override this function to perform some custom operation.
             // Return true if you want the connection
@@ -266,6 +276,8 @@ namespace RedBack
             {
                 return true;
             }
+
+        protected:
 
             // Called when a connection is disconnected.
             // Override to customize
@@ -317,14 +329,13 @@ namespace RedBack
                     case Config::CreateRoom:
                     {
                         
-                        // Create a room and send back the room id
-                        // So that the client can then forward
-                        // it to other clients to join it
+                        // Create a room and send the room id
+                        // to all clients notifying them a room is created
                         Message<T> msg;
                         msg.header = owned_msg.message.header; 
                         msg.header.config = Config::CreateRoomResponse;
                         msg << createRoom(owned_msg.owner);
-                        MessageClient(owned_msg.owner, msg);
+                        MessageAllClients(msg);
                         break;
 
                     }
@@ -414,8 +425,6 @@ namespace RedBack
 
                 uint32_t oldID = _roomID++;
 
-                addToRoom(oldID, connection);
-
                 return oldID;
             }
 
@@ -428,7 +437,17 @@ namespace RedBack
                 if (rooms.find(rID) == rooms.end())
                     return;
 
+                //Notify the user they joined the room if they hadn't already
+                if (rooms.at(rID).find(connection) == rooms.at(rID).end())
+                {
+                    Message<T> msg;
+                    msg.header.config = Config::OnRoomJoined;
+                    msg << rID;
+                    MessageClient(connection, msg);
+                }
+
                 rooms.at(rID).insert(connection);
+                
             }
 
             // Get the connection from the id

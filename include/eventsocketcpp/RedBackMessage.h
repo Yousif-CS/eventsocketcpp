@@ -2,14 +2,13 @@
 
 #pragma once
 
-#include <eventsocketcpp/RedBackCommon.h>
 
-
+// Forward declaration for dependencies
 namespace RedBack {
     template<typename T>
     struct OwnedMessage;
 
-    template<typename T>
+    template<typename>
     struct MessageHeader;
 
     template<typename T>
@@ -20,6 +19,7 @@ namespace RedBack {
     enum class Config;
 }
 
+#include <eventsocketcpp/RedBackCommon.h>
 #include <eventsocketcpp/RedBackConnection.h>
 
 
@@ -35,7 +35,9 @@ namespace RedBack {
 
     // All possible configurations to the server/client
     enum class Config {
-        Forward, Forwarded, BroadcastAll, BroadcastRoom, Broadcasted, CreateRoom, CreateRoomResponse, JoinRoom, None
+        Forward, Forwarded, BroadcastAll, BroadcastRoom, Broadcasted,
+        CreateRoom, CreateRoomResponse, JoinRoom, OnRoomJoined,
+        None
     };
 
     // A header which contains what type of message it is
@@ -54,7 +56,7 @@ namespace RedBack {
         
         MessageHeader<T> header {};
 
-        std::vector<unsigned char> body;
+        std::vector<uint8_t> body;
 
         //Returns the size of the message
         size_t size() const
@@ -117,13 +119,13 @@ namespace RedBack {
         // Read the whole message into a string 
         friend Message<T>& operator >> (Message<T>& msg, std::string& data) 
         {
-            char tmp[msg.header.size];
-
-
-            std::memcpy(tmp, msg.body.data(), msg.header.size);
             
-            data = std::string(tmp);
+            data.resize(msg.header.size);
+            
+            std::memcpy(&data[0], msg.body.data(), msg.header.size);
+            
             // Resize the vector and adjust the header size;
+            
             msg.body.resize(0);
             msg.header.size = 0;
 

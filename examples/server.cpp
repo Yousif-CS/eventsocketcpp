@@ -21,7 +21,7 @@ public:
 	// We have to return true to indicate we want to actually accept the connection
 	virtual bool OnConnect(std::shared_ptr<RedBack::Connection<EventTypes>> conn) override
 	{
-		OnEvent(EventTypes::Hello, conn, [this, &conn](RedBack::Message<EventTypes> msg){
+		OnEvent(EventTypes::Hello, conn, [this, conn](RedBack::Message<EventTypes> msg){
 			
 			// log the message when a new message is received, and send it back
 
@@ -29,16 +29,16 @@ public:
 
 			// We have to provide a fixed size as we will be reading into a buffer
 			payload.reserve(msg.header.size);
-			
+
 			msg >> payload;
 
 			std::cout << "[" << conn->GetID() << "]" << " Sent: " << payload << std::endl;
 
 			RedBack::Message<EventTypes> responseMsg;
 			responseMsg.header.id = EventTypes::World;
-			msg << "Hello from the server!";
+			responseMsg << "Hello from the server!";
 
-			MessageClient(conn->shared_from_this(), msg);
+			MessageClient(conn, responseMsg);
 		});
 
 		return true;
