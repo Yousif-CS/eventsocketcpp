@@ -1,0 +1,15 @@
+syntax = "proto2";
+
+package EventSocket;
+
+message MessageHeader {
+    required uint32 id = 1;
+    required uint32 config = 2;
+    required uint32 size = 3;
+}
+
+message Message {
+
+    required MessageHeader header = 4;
+    required string body = 5;
+}
