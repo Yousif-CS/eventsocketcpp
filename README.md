@@ -12,7 +12,7 @@ which is language agnostic.
 -----------------------------------------------------------------------
 ## Dependencies:
   - boost v.1.73.0 or above.
-  - JsonCpp: http://open-source-parsers.github.io/jsoncpp-docs/doxygen/index.html
+  - protobuf
   
 -----------------------------------------------------------------------
 ## How to use the library:
