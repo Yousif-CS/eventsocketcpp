@@ -115,7 +115,7 @@ namespace RedBack
             // broadcast message to all connected clients on the server
             void broadcast(Message<T>& msg)
             {
-                msg.header.config = Config::BroadcastAll;
+                msg.setConfig(Config::BroadcastAll);
 
                 send(msg);
             }
@@ -123,7 +123,7 @@ namespace RedBack
             // broadcast a message to all clients in a certain room
             void broadcastRoom(Message<T>& msg, uint32_t roomID)
             {
-                msg.header.config = Config::BroadcastRoom;
+                msg.setConfig(Config::BroadcastRoom);
 
                 msg << roomID;
 
@@ -136,9 +136,7 @@ namespace RedBack
             void createRoom()
             {
                 Message<T> msg;
-                msg.header.config = Config::CreateRoom;
-                // we just want the msg to have some payload so it wouldn't get discarded
-                msg << Config::CreateRoom;
+                msg.setConfig(Config::CreateRoom);
                 send(msg);
             }
 
@@ -148,7 +146,7 @@ namespace RedBack
             {
                 Message<T> msg;
                 
-                msg.header.config = Config::JoinRoom;
+                msg.setConfig(Config::JoinRoom);
 
                 msg << roomID;
 
@@ -159,7 +157,7 @@ namespace RedBack
             // forward a message to a client with id 
             void forward(Message<T>& msg, uint32_t id)
             {
-                msg.header.config = Config::Forward;
+                msg.setConfig(Config::Forward);
                 msg << id;
 
                 send(msg);
@@ -175,9 +173,9 @@ namespace RedBack
             void OnMessage(Message<T> msg)
             {
                 // Check if there are custom callbacks assigned 
-                if (callbacks.count(msg.header.id) != 0)
+                if (callbacks.count(msg.ID()) != 0)
                 {
-                    callbacks.at(msg.header.id)(msg);
+                    callbacks.at(msg.ID())(msg);
                 }
             }
 
@@ -227,7 +225,7 @@ namespace RedBack
             // Parse the different configurations of the message
             bool parseConfigs(Message<T> msg)
             {
-                switch(msg.header.config)
+                switch(msg.config())
                 {
                     case Config::Broadcasted:
                     {

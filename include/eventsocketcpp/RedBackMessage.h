@@ -16,21 +16,21 @@ namespace RedBack {
 
     struct MetaConfig;
 
-    enum class Config;
-}
-
-#include <eventsocketcpp/RedBackCommon.h>
-#include <eventsocketcpp/RedBackConnection.h>
-
-
-namespace RedBack {
-    
     // All possible configurations to the server/client
     enum class Config {
         Forward, Forwarded, BroadcastAll, BroadcastRoom, Broadcasted,
         CreateRoom, CreateRoomResponse, JoinRoom, OnRoomJoined,
         None
     };
+}
+
+#include <eventsocketcpp/RedBackCommon.h>
+#include <eventsocketcpp/RedBackConnection.h>
+#include <eventsocketcpp/Message.pb.h>
+
+namespace RedBack {
+    
+
 
     // A header which contains what type of message it is
     // as well as the size of the body
@@ -40,20 +40,60 @@ namespace RedBack {
         T id {};
         Config config {Config::None};
         uint32_t size = 0;
+
     };
 
 
     template<typename T>
     struct Message {
         
-        MessageHeader<T> header {};
+        Message()
+        {
+            messageImp.mutable_header()->set_config(static_cast<uint32_t>(header.config));
+        }
 
-        std::vector<uint8_t> body;
+        // Getters
+        T ID()
+        {
+            return header.id;
+        }
+
+        Config config()
+        {
+            return header.config;
+        }
+
+        // Setters
+        void setID(T id)
+        {
+            header.id = id;
+            messageImp.mutable_header()->set_id(static_cast<uint32_t>(id));
+        }
+
+        void setConfig(Config conf)
+        {
+            header.config = conf;
+            messageImp.mutable_header()->set_config(static_cast<uint32_t>(conf));
+        }
+
+        bool SerializeToString(std::string * output)
+        {
+            return messageImp.SerializeToString(output);
+        }
+
+        bool ParseFromString(const std::string& data)
+        {
+            messageImp.ParseFromString(data);
+            // update the header information
+            header.id = T(messageImp.header().id());
+            header.config = Config(messageImp.header().config());
+            header.size = messageImp.header().size();
+        }
 
         //Returns the size of the message
         size_t size() const
         {
-            return body.size();
+            return messageImp.body().size();
         }
 
         //Print out the message to stdout
@@ -75,13 +115,20 @@ namespace RedBack {
             size_t i = msg.size();
 
             // Resize the vector to contain new data
-            msg.body.resize(msg.size() + sizeof(DataType));
+            msg.messageImp.mutable_body()->resize(msg.size() + sizeof(DataType));
 
             // Actually copy the data into our message
-            std::memcpy(msg.body.data() + i, &data, sizeof(DataType));
+            std::vector<char> dest;
+            std::copy(msg.messageImp.body().begin(), msg.messageImp.body().end(), std::back_inserter(dest));
+
+            std::memcpy(dest.data() + i, &data, sizeof(DataType));
+
+            std::string payload{dest.data()};
+            msg.messageImp.set_body(std::string(dest.data()));
 
             // Update the size;
-            msg.header.size = msg.size();
+            msg.header.size = msg.messageImp.body().size();
+            msg.messageImp.mutable_header()->set_size(msg.header.size);
 
             // To chain the operation
             return msg;
@@ -98,12 +145,14 @@ namespace RedBack {
             size_t i = msg.size() - sizeof(DataType);
 
             // Read the data into the variable
-            std::memcpy(&data, msg.body.data() + i, sizeof(DataType));
+            std::memcpy(&data, msg.messageImp.body().data() + i, sizeof(DataType));
 
             // Resize the vector and adjust the header size;
-            msg.body.resize(i);
-            msg.header.size = msg.size();
-
+            std::vector<char> newBody;
+            std::copy(msg.messageImp.body().begin(),msg.messageImp.body().begin() + i, std::back_inserter(newBody)); 
+            msg.messageImp.set_body(std::string(newBody.data()));
+            msg.header.size = i;
+            msg.messageImp.mutable_header()->set_size(msg.header.size);
             // return the message object for chaining
             return msg;
         } 
@@ -114,15 +163,18 @@ namespace RedBack {
             
             data.resize(msg.header.size);
             
-            std::memcpy(&data[0], msg.body.data(), msg.header.size);
+            std::memcpy(&data[0], msg.messageImp.body().data(), msg.header.size);
             
-            // Resize the vector and adjust the header size;
-            
-            msg.body.resize(0);
+            // reset the message buffer            
+            msg.messageImp.set_body(std::string());
             msg.header.size = 0;
+            msg.messageImp.mutable_header()->set_size(0);
 
             // You cannot chain this operation, so we do not return a string
-        }   
+        }
+    private:
+        MessageHeader<T> header {};
+        EventSocket::Message messageImp;
     };
 
     // An owned message is a message that belongs to a certain connection.

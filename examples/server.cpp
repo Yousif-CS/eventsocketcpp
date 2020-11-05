@@ -27,15 +27,12 @@ public:
 
 			std::string payload;
 
-			// We have to provide a fixed size as we will be reading into a buffer
-			payload.reserve(msg.header.size);
-
 			msg >> payload;
 
 			std::cout << "[" << conn->GetID() << "]" << " Sent: " << payload << std::endl;
 
 			RedBack::Message<EventTypes> responseMsg;
-			responseMsg.header.id = EventTypes::World;
+			responseMsg.setID(EventTypes::World);
 			responseMsg << "Hello from the server!";
 
 			MessageClient(conn, responseMsg);

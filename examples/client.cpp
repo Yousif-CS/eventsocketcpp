@@ -34,12 +34,13 @@ protected:
             //For example, when I receive event World, i will try and create a room
             RedBack::Message<EventTypes> response;
 
+            response.setID(EventTypes::Hello);
             response << "This is a broadcast message!";
             broadcast(response);
         });
 
         RedBack::Message<EventTypes> msg;
-        msg.header.id = EventTypes::Hello;
+        msg.setID(EventTypes::Hello);
         msg << "Hello!";
 
         send(msg);
@@ -58,7 +59,7 @@ protected:
     // Override: when a client broadcasts a message
     virtual void OnBroadCast(RedBack::Message<EventTypes> msg, uint32_t broadcasterID)
     {
-        if (msg.header.id == EventTypes::Hello)
+        if (msg.ID() == EventTypes::Hello)
         {
             std::string broadcasted;
             msg >> broadcasted;

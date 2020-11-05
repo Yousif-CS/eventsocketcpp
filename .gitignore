@@ -4,4 +4,7 @@ tests/build
 .vscode
 json/
 lib/
+bin/
+include/google/
+include/json/
 *Targets*.cmake

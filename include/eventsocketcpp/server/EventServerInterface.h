@@ -304,9 +304,9 @@ namespace RedBack
                 {
                     auto events = callbacks.at(connection->GetID());
                     
-                    if (events.find(msg.header.id) != events.end())
+                    if (events.find(msg.ID()) != events.end())
                     {
-                        events.at(msg.header.id)(msg);
+                        events.at(msg.ID())(msg);
                     }
                 }
                 return true;
@@ -318,7 +318,7 @@ namespace RedBack
             // them
             virtual void parseRequests(OwnedMessage<T>& owned_msg)
             {
-                switch(owned_msg.message.header.config)
+                switch(owned_msg.message.config())
                 {
                     case Config::BroadcastAll:
                     {
@@ -326,7 +326,7 @@ namespace RedBack
                         // It is important to set the request to NONE
                         // so that the message does not keep getting
                         // broadcasted
-                        owned_msg.message.header.config = Config::Broadcasted;
+                        owned_msg.message.setConfig(Config::Broadcasted);
                         owned_msg.message << owned_msg.owner->GetID();
                         MessageAllClients(owned_msg.message, owned_msg.owner);
                         break;
@@ -338,8 +338,8 @@ namespace RedBack
                         // Create a room and send the room id
                         // to all clients notifying them a room is created
                         Message<T> msg;
-                        msg.header = owned_msg.message.header; 
-                        msg.header.config = Config::CreateRoomResponse;
+                        msg.setID(owned_msg.message.ID()); 
+                        msg.setConfig(Config::CreateRoomResponse);
                         msg << createRoom(owned_msg.owner);
                         MessageAllClients(msg);
                         break;
@@ -349,7 +349,7 @@ namespace RedBack
                     case Config::BroadcastRoom:
                     {
                         //Set the flag as broadcasted
-                        owned_msg.message.header.config = Config::Broadcasted;
+                        owned_msg.message.setConfig(Config::Broadcasted);
 
                         // Get the room id from the payload
                         uint32_t roomID;
@@ -384,7 +384,7 @@ namespace RedBack
                         owned_msg.message >> recpID;
                         
                         //Set the flag to be forwarded;
-                        owned_msg.message.header.config = Config::Forwarded;
+                        owned_msg.message.setConfig(Config::Forwarded);
 
                         // Add the forwarder id
                         owned_msg.message << owned_msg.owner->GetID();
@@ -452,7 +452,7 @@ namespace RedBack
                 if (rooms.at(rID).find(connection) == rooms.at(rID).end())
                 {
                     Message<T> msg;
-                    msg.header.config = Config::OnRoomJoined;
+                    msg.setConfig(Config::OnRoomJoined);
                     msg << rID;
                     MessageClient(connection, msg);
                 }

@@ -13,6 +13,7 @@ namespace RedBack {
     class Connection;
 }
 
+
 #include <eventsocketcpp/RedBackCommon.h>
 #include <eventsocketcpp/RedBackMessage.h>
 #include <eventsocketcpp/RedBackTSQueue.h>
@@ -104,7 +105,7 @@ namespace RedBack {
 
                 if (ws.is_open()){
 
-                    readHeader();
+                    read();
                 }
 
             }
@@ -133,7 +134,7 @@ namespace RedBack {
 
                     if (!isWriting)
                     {
-                        writeHeader();
+                        write();
                     }
                 });
             }
@@ -202,7 +203,7 @@ namespace RedBack {
                         // invoke the OnConnect callback
                         clientOnConnect();
                         //start reading
-                        readHeader();
+                        read();
                     }
                 
                 });
@@ -215,23 +216,18 @@ namespace RedBack {
 
             // Reads the header when an incoming message arrives, and 
             // resizes the message buffer to accomodate the payload
-            void readHeader(){
-
-                boost::asio::async_read(ws.next_layer(), boost::asio::buffer(&msgTemporaryIn.header, sizeof(MessageHeader<T>)),
+            void read(){
+                
+                ws.async_read(_buffer,
                     [this](std::error_code ec, std::size_t length)
                     {
                         if (!ec)
                         {
-                            // There is a body to follow, so read it
-                            if (msgTemporaryIn.header.size > 0)
-                            {
-                                // Resize the buffer so that we accomodate the body
-                                msgTemporaryIn.body.resize(msgTemporaryIn.header.size);
-                                readBody();
-                            }
-                            else {
-                                addToIncomingMsgQueue();
-                            }
+                            
+                            // Deserialize the data structure
+                            msgTemporaryIn.ParseFromString(buffers_to_string(this->_buffer.data()));
+
+                            addToIncomingMsgQueue();
                         }
                         else
                         {
@@ -245,58 +241,32 @@ namespace RedBack {
                 );
             }
 
-            // Called after the header has been read,
-            // calls the onMessage callback of the parent (server/client interface)
-            // with the payload
-            void readBody(){
-                boost::asio::async_read(ws.next_layer(), boost::asio::buffer(msgTemporaryIn.body.data(), msgTemporaryIn.header.size),
-                [this](std::error_code ec, size_t length){
-                    
-                    if (!ec)
-                    {
-                        // message received
-                        addToIncomingMsgQueue();
-                    }
-                    else
-                    {
-                        // Error reading body
-                        std::cerr << "[" << id << "]" << " Reading Body Failed" << std::endl;
-                        if (!isConnected())
-                            disconnect();
-                    }
-                });
-            }
-
             // Asynchronously write a message from the message queue to the socket
-            // 
-            void writeHeader()
+            void write()
             {
                 //nothing to write
                 if (qMessagesOut.isEmpty())
                     return;
 
-                boost::asio::async_write(ws.next_layer(), boost::asio::buffer(&qMessagesOut.front().header, sizeof(MessageHeader<T>)),
+                // Serialize the message
+                std::string data;
+                Message<T> msg = qMessagesOut.front();
+                msg.SerializeToString(&data);
+
+                auto buffer = boost::asio::buffer(data);
+
+                ws.async_write(buffer,
                     [this](std::error_code ec, size_t length)
                     {
                         if (!ec)
                         {
-                            // We still have a body to write
-                            if (qMessagesOut.front().header.size > 0)
-                            {
 
-                                writeBody();
-                            }
-                            else 
-                            {
-                                // No body; the message is done
-                                qMessagesOut.pop_front();
+                            // The message is done
+                            qMessagesOut.pop_front();
 
-                                if (!qMessagesOut.isEmpty())
-                                {
-                                    writeHeader();
-                                }
+                            if (!qMessagesOut.isEmpty())
+                                write();
 
-                            }
                         }
                         else
                         {
@@ -305,35 +275,6 @@ namespace RedBack {
                                 disconnect();                        }
                         
                     });
-            }
-
-            // Asynchronously write the body of the message at the top of the queue
-            void writeBody()
-            {
-                if (qMessagesOut.isEmpty())
-                    return;
-
-
-                boost::asio::async_write(ws.next_layer(), boost::asio::buffer(qMessagesOut.front().body.data(), qMessagesOut.front().body.size()),
-                [this](std::error_code ec, size_t length)
-                {
-                    if (!ec)
-                    {
-                        // We finished up that message, so pop it
-                        qMessagesOut.pop_front();
-
-                        //If the queue is not empty, continue writing
-                        if (!qMessagesOut.isEmpty())
-                            writeHeader();
-                    }
-                    else
-                    {
-                        // Could not read body
-                        std::cerr << "[" << id << "]" << " Writing Body Failed." << std::endl;
-                        if (!isConnected())
-                            disconnect();                    }
-                    
-                });
             }
 
             // Add the temporary msg to the interface (client or server) queue 
@@ -347,13 +288,13 @@ namespace RedBack {
                 }
                 else
                 {
-                    // The owner is a client therefore we do not have other possible owners
+                    // The owner is a client therefore we do not have other possible endpoints
                     // than the server
                     qMessagesIn.push_back(OwnedMessage<T>(nullptr, msgTemporaryIn));
                 } 
 
                 //We finally continue reading 
-                readHeader();
+                read();
             }
 
             // Called when the connection as a client 
@@ -405,5 +346,9 @@ namespace RedBack {
                     }
                 }
             }
+
+        private:
+            // buffer to temporarily read into
+            beast::flat_buffer _buffer;
     };
 } // RedBack
