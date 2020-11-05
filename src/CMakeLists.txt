@@ -3,17 +3,36 @@ project(eventsocketcpp VERSION 0.1.0)
 
 set(LIBRARY_OUTPUT_PATH ./lib)
 
+include(FindProtobuf)
+find_package(Protobuf REQUIRED)
+
+
+# Here we generate the .cc and .h files from the .proto files defined in the repo
+file (GLOB ProtoFiles "${CMAKE_CURRENT_SOURCE_DIR}/*.proto")
+
+PROTOBUF_GENERATE_CPP(PROTO_SRCS PROTO_HDRS ${ProtoFiles})
+
+SET_SOURCE_FILES_PROPERTIES(${PROTO_SRCS} ${PROTO_HDRS} PROPERTIES GENERATED TRUE)
+
+add_custom_target(proto_dep DEPENDS ${PROTO_SRCS} ${PROTO_HDRS})
+
 file(
 	GLOB_RECURSE
 	MY_SOURCE_FILES
 	ListeningServer.cpp
 	CustomWebSocketClient.cpp
 	CustomWebSocket.cpp
+	${PROTO_SRCS}
+	${PROTO_HDRS}
 )
 
-add_library(${PROJECT_NAME} STATIC ${MY_SOURCE_FILES})
 
-message(STATUS "${CMAKE_CURRENT_SOURCE_DIR}")
+add_library(${PROJECT_NAME} STATIC ${MY_SOURCE_FILES})
+add_dependencies(${PROJECT_NAME} proto_dep)
+
+target_link_libraries(${PROJECT_NAME}
+		PUBLIC
+			jsoncpp -lpthread ${Protobuf_LIBRARIES})
 
 target_include_directories(${PROJECT_NAME} 
 		PUBLIC
@@ -21,22 +40,16 @@ target_include_directories(${PROJECT_NAME}
 			$<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include>
 			$<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/include>
 		PRIVATE		
+			$<BUILD_INTERFACE:${CMAKE_INSTALL_PREFIX}/include>
 			$<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/src>
+			$<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/src>
 		)
 
-# target_include_directories(${PROJECT_NAME} PUBLIC ${Boost_INCLUDE_DIRS})
-
-# target_include_directories(${PROJECT_NAME} PUBLIC ${jsoncpp_INCLUDE_DIRS})
-
-
-target_link_libraries(${PROJECT_NAME}
-		PUBLIC
-			jsoncpp -lpthread)
+			
 
 # Export the targets to a script
 
 include(GNUInstallDirs)
-# set(INSTALL_CONFIGDIR ${CMAKE_SOURCE_DIR}/cmake/EventSocketCpp)
 
 install(
 	TARGETS ${PROJECT_NAME}
@@ -54,7 +67,7 @@ install(
 	NAMESPACE
 		EventSocketCpp::
 	DESTINATION
-		cmake/eventsocketcpp
+		lib/cmake/eventsocketcpp
 )
 
 # Create a ConfigVersion.cmake file
@@ -72,6 +85,19 @@ install(
 		${CMAKE_BINARY_DIR}/EventSocketCppConfigVersion.cmake
 	DESTINATION	lib/cmake/eventsocketcpp
 )
+
+install(DIRECTORY ${CMAKE_SOURCE_DIR}/include/eventsocketcpp
+		DESTINATION include)
+
+# Get all the protobuf out of the build directory
+# (FindProtobuf somehow cannot install them except there so we have to extract them)
+
+file (GLOB	Protobuf_files
+		"${CMAKE_BINARY_DIR}/src/*.pb.h")
+
+install(FILES
+		${Protobuf_files}
+		DESTINATION include/eventsocketcpp)
 
 export(EXPORT eventsocketcpp-export
 		FILE cmake/eventsocketcpp/EventSocketCppTargets.cmake

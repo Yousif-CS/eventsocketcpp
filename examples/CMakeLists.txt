@@ -2,9 +2,6 @@ cmake_minimum_required(VERSION 3.11)
 project(eventsocketcpp-example)
 
 # dependencies
-# enable_testing()
-
-# find_package(GTest MODULE REQUIRED)
 
 if(NOT TARGET EventSocketCpp::EventSocketCpp)
 	find_package(EventSocketCpp CONFIG REQUIRED)
