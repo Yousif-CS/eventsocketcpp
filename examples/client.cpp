@@ -1,23 +1,144 @@
 // A simple event socket client demonstrating usage
 
-#include <iostream>
+// #include <iostream>
 
-#include "eventsocketcpp/client/CustomWebSocketClient.h"
-#include "eventsocketcpp/EventSocket.h"
+// #include "eventsocketcpp/client/CustomWebSocketClient.h"
+// #include "eventsocketcpp/EventSocket.h"
 
+#include <eventsocketcpp/client/EventClientInterface.h>
+#include <cstdlib>
+#include <atomic>
+
+// This decribes the events that could be sent to the server
+enum class EventTypes {
+    Hello, World, RandomNumber
+};
+
+// Here we override the OnConnect function to listen to events
+class EventClient: public RedBack::Client::EventClientInterface<EventTypes>
+{
+protected:
+    // Here we assign some event listeners when we connect to the server
+    virtual void OnConnect() override
+    {
+
+        std::cout << "[CLIENT] Connected!" << std::endl;
+
+        OnEvent(EventTypes::World, [this](RedBack::Message<EventTypes> msg){
+            
+            std::string payload;
+            msg >> payload;
+
+            std::cout << "[SERVER]" << " Sent: " <<  payload << std::endl; 
+            
+            //For example, when I receive event World, i will try and create a room
+            RedBack::Message<EventTypes> response;
+
+            response.setID(EventTypes::Hello);
+            response << "This is a broadcast message!";
+            broadcast(response);
+        });
+
+        RedBack::Message<EventTypes> msg;
+        msg.setID(EventTypes::Hello);
+        msg << "Hello!";
+
+        send(msg);
+
+    }
+
+
+    // Override: when a client forwards a message to you 
+    virtual void OnForward(RedBack::Message<EventTypes> msg, uint32_t forwarderID)
+    {
+        std::string payload;
+        msg >> payload;
+        std::cout << "[" << forwarderID << "]" << " Sent: " << payload << std::endl;
+    }
+
+    // Override: when a client broadcasts a message
+    virtual void OnBroadCast(RedBack::Message<EventTypes> msg, uint32_t broadcasterID)
+    {
+        if (msg.ID() == EventTypes::Hello)
+        {
+            std::string broadcasted;
+            msg >> broadcasted;
+            std::cout << "[" << broadcasterID << "]" << " Broadcasted: " << broadcasted << std::endl;
+
+            // forward a message to the broadcaster
+            RedBack::Message<EventTypes> payload;
+            payload << "Hello BroadCaster!";
+            forward(payload, broadcasterID);
+        }
+
+    }
+
+    // Override: when a room is created, the server will send its id to all clients
+    // and this callback is received 
+    // virtual void OnRoomCreated(RedBack::Message<EventTypes> msg, uint32_t roomID)
+    // {
+    //     // Try to join the room
+    //     joinRoom(roomID);
+
+    //     // The OnJoinedRoom Callback will be invoked
+    // }
+
+    // Override: when a room is joined
+    // virtual void OnRoomJoined(uint32_t roomID)
+    // {
+    //     // Try to send a random number to indicate a different client each time :D
+    //     RedBack::Message<EventTypes> msg;
+    //     msg.header.id = EventTypes::RandomNumber;
+
+    //     int max;
+    //     max = 1000; //set the upper bound to generate the random number
+    //     srand(time(0));
+
+    //     msg << rand()%max;
+    //     broadcastRoom(msg, roomID);
+
+    // }
+};
+
+
+// Just to wait for input before disconnecting the 
+std::atomic<bool> stop{false};
+
+
+void PressAnyKeyLoop()
+{
+    while(!stop.load());
+}
 
 int main(int argc, char* argv[]){
 
-    if (argc < 3){
-        std::cout << "Usage: " << argv[0] << " [host] [port]" << std::endl;
-        return 0;
-    }
 
-    RedBack::Client::WebSocket ws{argv[1], static_cast<unsigned short>(atoi(argv[2]))};
-    RedBack::EventSocket<RedBack::Client::WebSocket> es{ws};
-    
+    EventClient client;
 
-    es.on_event("Connect", [](std::string payload){
-        std::cout << "Received event: Connected, payload: " << payload << std::endl;
+    client.connect("127.0.0.1", 60000);
+
+    // Here we can keep processing messages blocking the main thread, 
+    // or better, we can read messages on a seperate thread;
+    std::thread processMessages([&client]() {
+
+        while (!stop.load()){
+            client.update(5, false);
+        }
+
     });
+    processMessages.detach();
+    
+    //wait for key process
+    char newline[2];
+    std::cin.getline(newline, 1);
+    
+    stop = true;
+
+    std::cout << "Disconnecting..." << std::endl;
+    
+    if (processMessages.joinable())
+    {
+        processMessages.join();
+    }
+    
 }

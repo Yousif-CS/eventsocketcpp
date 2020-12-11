@@ -2,7 +2,6 @@
 #include <iostream>
 #include "boost/asio.hpp"
 #include "eventsocketcpp/server/ListeningServer.h"
-
 namespace net = boost::asio;
 
 
@@ -14,7 +13,6 @@ namespace RedBack {
 		*/
 		std::shared_ptr<RedBack::Server::WebSocket<tcp::socket>> ListeningServer::accept() {
 			for (;;) {
-				
 				//this will be the socket that holds the connection
 				tcp::socket socket{ io_context_ };
 				static tcp::acceptor acceptor{ io_context_, {net::ip::make_address(host_), port_} };

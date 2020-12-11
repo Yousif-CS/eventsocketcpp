@@ -8,7 +8,7 @@ include(CheckIncludeFileCXX)
 include(CheckIncludeFiles)
 include(ExternalProject)
 include(thirdparty/JsonCpp.cmake)
-include(thirdparty/Boost.cmake)
+include(thirdparty/ProtoBuf.cmake)
 
 add_subdirectory(src)
 add_subdirectory(include)

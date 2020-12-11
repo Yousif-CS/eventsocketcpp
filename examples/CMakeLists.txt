@@ -2,9 +2,6 @@ cmake_minimum_required(VERSION 3.11)
 project(eventsocketcpp-example)
 
 # dependencies
-# enable_testing()
-
-# find_package(GTest MODULE REQUIRED)
 
 if(NOT TARGET EventSocketCpp::EventSocketCpp)
 	find_package(EventSocketCpp CONFIG REQUIRED)
@@ -23,3 +20,4 @@ target_link_libraries(client
 		PUBLIC
 		EventSocketCpp::EventSocketCpp)
 
+target_compile_options(server PRIVATE -ftemplate-backtrace-limit=0)
