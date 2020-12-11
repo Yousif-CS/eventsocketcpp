@@ -32,7 +32,6 @@ namespace RedBack {
                 client
             };
 
-
             // For server interfaces
             Connection(owner parent, boost::asio::io_context& ioContext, boost::asio::ip::tcp::socket socket, TSQueue<OwnedMessage<T>>& qIn)
             :asioContext(ioContext), qMessagesIn(qIn), ws(std::move(socket))

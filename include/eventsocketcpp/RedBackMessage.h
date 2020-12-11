@@ -148,9 +148,9 @@ namespace RedBack {
             std::memcpy(&data, msg.messageImp.body().data() + i, sizeof(DataType));
 
             // Resize the vector and adjust the header size;
-            std::vector<char> newBody;
-            std::copy(msg.messageImp.body().begin(),msg.messageImp.body().begin() + i, std::back_inserter(newBody)); 
-            msg.messageImp.set_body(std::string(newBody.data()));
+            //std::vector<char> newBody;
+            //std::copy(msg.messageImp.body().begin(),msg.messageImp.body().begin() + i, std::back_inserter(newBody)); 
+            msg.messageImp.mutable_body()->resize(i);
             msg.header.size = i;
             msg.messageImp.mutable_header()->set_size(msg.header.size);
             // return the message object for chaining
