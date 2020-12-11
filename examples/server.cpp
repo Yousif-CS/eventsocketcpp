@@ -37,7 +37,12 @@ public:
 
 			MessageClient(conn, responseMsg);
 		});
-
+		// Send a response back
+		RedBack::Message<EventTypes> msg;
+		msg << "Hello from the server!";
+		msg.setID(EventTypes::Hello);
+		MessageClient(conn, msg);
+		
 		return true;
 
 	}
@@ -54,7 +59,7 @@ int main(int argc, char *argv[]){
 
 	EventServer server{60000};
 
-	// run the context on 4 threads
+	// run the context on 5 threads
 	server.start(5);
 
 	while(true)
