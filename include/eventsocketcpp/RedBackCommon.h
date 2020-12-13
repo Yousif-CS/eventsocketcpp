@@ -22,11 +22,6 @@
 #include <boost/beast/core/buffers_to_string.hpp>
 #include <boost/beast/core/detail/base64.hpp>
 
-#include <jsoncpp/json/json.h>
-#include <jsoncpp/json/reader.h>
-#include <jsoncpp/json/value.h>
-#include <jsoncpp/json/reader.h>
-
 namespace net = boost::asio;
 namespace beast = boost::beast;
 using namespace boost::beast;
