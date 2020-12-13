@@ -59,6 +59,9 @@ file (GLOB	Protobuf_files
 install(FILES
 		${Protobuf_files}
 		DESTINATION include/eventsocketcpp)
+install(FILES
+		${PROTO_HDRS}
+		DESTINATION include/eventsocketcpp)
 
 # export(EXPORT EventSocketCpp
 # 		FILE cmake/eventsocketcpp/EventSocketCppTargets.cmake
