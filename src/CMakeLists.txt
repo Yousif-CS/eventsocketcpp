@@ -48,7 +48,7 @@ install(
 	INCLUDES DESTINATION include
 )
 
-install(DIRECTORY ${CMAKE_SOURCE_DIR}/include
+install(DIRECTORY ${CMAKE_SOURCE_DIR}/include/eventsocketcpp
 		DESTINATION include)
 
 
