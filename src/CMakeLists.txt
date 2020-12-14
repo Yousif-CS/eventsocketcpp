@@ -12,13 +12,14 @@ file (GLOB ProtoFiles "${CMAKE_CURRENT_SOURCE_DIR}/*.proto")
 message("ProtoFiles: ${ProtoFiles}")
 
 PROTOBUF_GENERATE_CPP(PROTO_SRCS PROTO_HDRS ${ProtoFiles})
-message("Generated Protobuf source and header files ${PROTO_SRC} ${PROTO_HDRS}.")
-
+message("Generated Protobuf source and header files ${PROTO_SRCS} ${PROTO_HDRS}.")
 SET_SOURCE_FILES_PROPERTIES(${PROTO_SRCS} ${PROTO_HDRS} PROPERTIES GENERATED TRUE)
+
 
 
 add_custom_target(proto_dep DEPENDS ${PROTO_SRCS} ${PROTO_HDRS})
 
+file(GLOB_RECURSE)
 add_library(${PROJECT_NAME} STATIC example.cpp)
 add_dependencies(${PROJECT_NAME} proto_dep)
 
@@ -53,6 +54,7 @@ install(
 install(DIRECTORY ${CMAKE_SOURCE_DIR}/include/eventsocketcpp
 		DESTINATION include)
 
+message("CMAKE_SOURCE_DIR = ${CMAKE_SOURCE_DIR}")
 
 # Get all the protobuf out of the build directory
 # (FindProtobuf somehow cannot install them except there so we have to extract them)
