@@ -26,7 +26,7 @@ namespace RedBack {
 
 #include <eventsocketcpp/RedBackCommon.h>
 #include <eventsocketcpp/RedBackConnection.h>
-#include <Message.pb.h>
+#include <eventsocketcpp/Message.pb.h>
 
 namespace RedBack {
     
