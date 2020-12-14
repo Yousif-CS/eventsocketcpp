@@ -1,7 +1,6 @@
 cmake_minimum_required(VERSION 3.11.0)
 project(eventsocketcpp VERSION 0.1.0)
 
-
 set(LIBRARY_OUTPUT_PATH ./lib)
 
 find_package(Protobuf 3.14.0 REQUIRED)
@@ -9,20 +8,13 @@ find_package(Protobuf 3.14.0 REQUIRED)
 # Here we generate the .cc and .h files from the .proto files defined in the repo
 file (GLOB ProtoFiles "${CMAKE_CURRENT_SOURCE_DIR}/*.proto")
 
-message("ProtoFiles: ${ProtoFiles}")
-
 PROTOBUF_GENERATE_CPP(PROTO_SRCS PROTO_HDRS ${ProtoFiles})
+
 message("Generated Protobuf source and header files ${PROTO_SRCS} ${PROTO_HDRS}.")
+
 SET_SOURCE_FILES_PROPERTIES(${PROTO_SRCS} ${PROTO_HDRS} PROPERTIES GENERATED TRUE)
 
-add_custom_target(proto_dep DEPENDS ${PROTO_SRCS} ${PROTO_HDRS})
-
-
 add_library(${PROJECT_NAME} ${PROTO_SRCS} ${PROTO_HDRS})
-
-#add_dependencies(${PROJECT_NAME} proto_dep)
-
-message("Protobuf libraries ${Protobuf_LIBRARIES}")
 
 target_link_libraries(${PROJECT_NAME}
 		INTERFACE
@@ -65,12 +57,8 @@ install(FILES
 		${PROTO_HDRS}
 		DESTINATION include/eventsocketcpp)
 
-# export(EXPORT EventSocketCpp
-# 		FILE cmake/eventsocketcpp/EventSocketCppTargets.cmake
-# 		NAMESPACE EventSocketCpp::)
-
-# # register package
-# export(PACKAGE EventSocketCpp)
+# register package
+export(PACKAGE EventSocketCpp)
 
 install(
 	EXPORT EventSocketCpp
