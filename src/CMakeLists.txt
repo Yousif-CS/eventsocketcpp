@@ -9,6 +9,8 @@ find_package(Protobuf 3.13.0 REQUIRED)
 # Here we generate the .cc and .h files from the .proto files defined in the repo
 file (GLOB ProtoFiles "${CMAKE_CURRENT_SOURCE_DIR}/*.proto")
 
+message("ProtoFiles: ${ProtoFiles}")
+
 PROTOBUF_GENERATE_CPP(PROTO_SRCS PROTO_HDRS ${ProtoFiles})
 message("Generated Protobuf source and header files.")
 
