@@ -16,7 +16,7 @@ SET_SOURCE_FILES_PROPERTIES(${PROTO_SRCS} ${PROTO_HDRS} PROPERTIES GENERATED TRU
 add_library(${PROJECT_NAME} ${PROTO_SRCS} ${PROTO_HDRS})
 
 target_link_libraries(${PROJECT_NAME}
-		PRIVATE
+		PUBLIC
 			-lpthread ${Protobuf_LIBRARIES})
 
 target_include_directories(${PROJECT_NAME} 
