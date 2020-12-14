@@ -16,16 +16,16 @@ PROTOBUF_GENERATE_CPP(PROTO_SRCS PROTO_HDRS ${ProtoFiles})
 message("Generated Protobuf source and header files ${PROTO_SRCS} ${PROTO_HDRS}.")
 SET_SOURCE_FILES_PROPERTIES(${PROTO_SRCS} ${PROTO_HDRS} PROPERTIES GENERATED TRUE)
 
-add_custom_target(proto_dep DEPENDS ${PROTO_SRCS} ${PROTO_HDRS} ${ProtoFiles})
+add_custom_target(proto_dep DEPENDS ${PROTO_SRCS} ${PROTO_HDRS})
 
-#add_library(proto_dep ${PROTO_SRCS} ${PROTO_HDRS})
 
-add_library(${PROJECT_NAME} INTERFACE)
+add_library(${PROJECT_NAME} ${PROTO_SRCS} ${PROTO_HDRS})
+
 add_dependencies(${PROJECT_NAME} proto_dep)
 
 target_link_libraries(${PROJECT_NAME}
 		INTERFACE
-			-lpthread ${Protobuf_LIBRARIES} ${PROTO_SRCS} ${PROTO_HDRS})
+			-lpthread ${Protobuf_LIBRARIES})
 
 target_include_directories(${PROJECT_NAME} 
 		INTERFACE
