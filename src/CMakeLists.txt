@@ -54,7 +54,7 @@ install(
 install(DIRECTORY ${CMAKE_SOURCE_DIR}/include/eventsocketcpp
 		DESTINATION include)
 
-message("CMAKE_SOURCE_DIR = ${CMAKE_SOURCE_DIR}")
+message("CMAKE_CURRENT_SOURCE_DIR = ${CMAKE_CURRENT_SOURCE_DIR}")
 
 # Get all the protobuf out of the build directory
 # (FindProtobuf somehow cannot install them except there so we have to extract them)
