@@ -6,7 +6,6 @@ set(LIBRARY_OUTPUT_PATH ./lib)
 
 find_package(Protobuf 3.14.0 REQUIRED)
 
-
 # Here we generate the .cc and .h files from the .proto files defined in the repo
 file (GLOB ProtoFiles "${CMAKE_CURRENT_SOURCE_DIR}/*.proto")
 
@@ -21,7 +20,9 @@ add_custom_target(proto_dep DEPENDS ${PROTO_SRCS} ${PROTO_HDRS})
 
 add_library(${PROJECT_NAME} ${PROTO_SRCS} ${PROTO_HDRS})
 
-add_dependencies(${PROJECT_NAME} proto_dep)
+#add_dependencies(${PROJECT_NAME} proto_dep)
+
+message("Protobuf libraries ${Protobuf_LIBRARIES}")
 
 target_link_libraries(${PROJECT_NAME}
 		INTERFACE
