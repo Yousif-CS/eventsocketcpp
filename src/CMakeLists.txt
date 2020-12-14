@@ -15,27 +15,21 @@ PROTOBUF_GENERATE_CPP(PROTO_SRCS PROTO_HDRS ${ProtoFiles})
 message("Generated Protobuf source and header files ${PROTO_SRCS} ${PROTO_HDRS}.")
 SET_SOURCE_FILES_PROPERTIES(${PROTO_SRCS} ${PROTO_HDRS} PROPERTIES GENERATED TRUE)
 
-
-
 add_custom_target(proto_dep DEPENDS ${PROTO_SRCS} ${PROTO_HDRS})
 
-file(GLOB_RECURSE)
-add_library(${PROJECT_NAME} STATIC example.cpp)
+
+add_library(${PROJECT_NAME} INTERFACE)
 add_dependencies(${PROJECT_NAME} proto_dep)
 
 target_link_libraries(${PROJECT_NAME}
-		PUBLIC
+		INTERFACE
 			-lpthread ${Protobuf_LIBRARIES})
 
 target_include_directories(${PROJECT_NAME} 
-		PUBLIC
+		INTERFACE
 			$<INSTALL_INTERFACE:include>
-			$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
-			$<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/src>
-		PRIVATE		
-			$<BUILD_INTERFACE:${CMAKE_INSTALL_PREFIX}/include>
-			$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
-			$<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/src>
+			$<BUILD_INTERFACE:${${PROJECT_NAME}_SOURCE_DIR}/include>
+            $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/src>
 		)
 
 # Export the targets to a script
@@ -50,6 +44,8 @@ install(
 	RUNTIME DESTINATION bin
 	INCLUDES DESTINATION include
 )
+
+
 
 install(DIRECTORY ${CMAKE_SOURCE_DIR}/include/eventsocketcpp
 		DESTINATION include)
