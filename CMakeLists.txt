@@ -29,7 +29,7 @@ write_basic_package_version_file(
 )
 
 export (EXPORT EventSocketCpp
-        FILE "${CMAKE_CURRENT_BINARY_DIR}/EventSocketCppTargets.cmake"
+        FILE "${CMAKE_CURRENT_BINARY_DIR}/cmake/EventSocketCppTargets.cmake"
         NAMESPACE EventSocketCpp::)
 
 install(

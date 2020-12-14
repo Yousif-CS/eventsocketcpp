@@ -1,5 +1,4 @@
 cmake_minimum_required(VERSION 3.11.0)
-project(eventsocketcpp VERSION 0.1.0)
 
 set(LIBRARY_OUTPUT_PATH ./lib)
 
@@ -40,7 +39,7 @@ install(
 	INCLUDES DESTINATION include
 )
 
-install(DIRECTORY ${CMAKE_SOURCE_DIR}/include/eventsocketcpp
+install(DIRECTORY ${${PROJECT_NAME}_SOURCE_DIR}/include/eventsocketcpp
 		DESTINATION include)
 
 # Get all the protobuf out of the build directory
