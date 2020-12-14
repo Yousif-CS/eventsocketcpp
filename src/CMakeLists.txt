@@ -12,7 +12,7 @@ file (GLOB ProtoFiles "${CMAKE_CURRENT_SOURCE_DIR}/*.proto")
 message("ProtoFiles: ${ProtoFiles}")
 
 PROTOBUF_GENERATE_CPP(PROTO_SRCS PROTO_HDRS ${ProtoFiles})
-message("Generated Protobuf source and header files.")
+message("Generated Protobuf source and header files ${PROTO_SRC} ${PROTO_HDRS}.")
 
 SET_SOURCE_FILES_PROPERTIES(${PROTO_SRCS} ${PROTO_HDRS} PROPERTIES GENERATED TRUE)
 
