@@ -10,6 +10,7 @@ find_package(Protobuf 3.13.0 REQUIRED)
 file (GLOB ProtoFiles "${CMAKE_CURRENT_SOURCE_DIR}/*.proto")
 
 PROTOBUF_GENERATE_CPP(PROTO_SRCS PROTO_HDRS ${ProtoFiles})
+message("Generated Protobuf source and header files.")
 
 SET_SOURCE_FILES_PROPERTIES(${PROTO_SRCS} ${PROTO_HDRS} PROPERTIES GENERATED TRUE)
 
