@@ -9,9 +9,8 @@ include(CheckIncludeFiles)
 
 
 add_subdirectory(thirdparty)
-add_subdirectory(src)
 add_subdirectory(include)
-
+add_subdirectory(src)
 
 
 # Create a ConfigVersion.cmake file

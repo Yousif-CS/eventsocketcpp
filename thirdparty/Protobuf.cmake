@@ -6,7 +6,6 @@ cmake_minimum_required(VERSION 3.11)
 # using FetchContent
 include(FetchContent)
 
-
 FetchContent_Declare (
     protobuf
     GIT_REPOSITORY https://github.com/protocolbuffers/protobuf
@@ -17,5 +16,7 @@ FetchContent_Declare (
 FetchContent_GetProperties(protobuf)
 
 if (NOT protobuf_POPULATED)
-    FetchContent_MakeAvailable(protobuf)
+		#    FetchContent_Populate(protobuf)
+		#add_subdirectory(${protobuf_SOURCE_DIR}/cmake ${protobuf_BINARY_DIR})
+	FetchContent_MakeAvailable(protobuf)
 endif()
