@@ -2,16 +2,7 @@ cmake_minimum_required(VERSION 3.11.0)
 
 set(LIBRARY_OUTPUT_PATH ./lib)
 
-#if (NOT BUILD_Protobuf AND NOT TARGET protobuf::libprotobuf)
-		#find_package(Protobuf 3.14.0 REQUIRED)
-	#endif()
-
-# Here we generate the .cc and .h files from the .proto files defined in the repo
-#file (GLOB ProtoFiles "${CMAKE_CURRENT_SOURCE_DIR}/*.proto")
-
-#PROTOBUF_GENERATE_CPP(PROTO_SRCS PROTO_HDRS ${ProtoFiles})
-
-#SET_SOURCE_FILES_PROPERTIES(${PROTO_SRCS} ${PROTO_HDRS} PROPERTIES GENERATED TRUE)
+find_package(Protobuf 3.14.0 REQUIRED)
 
 #add_custom_target(proto_deps
 #				  DEPENDS ${PROTO_SRCS} ${PROTO_HDRS})
@@ -22,7 +13,7 @@ add_library(${PROJECT_NAME} Message.pb.h Message.pb.cc RedBackMessage.cpp)
 
 target_link_libraries(${PROJECT_NAME}
 		PRIVATE
-		libprotobuf -lpthread)
+		${Protobuf_LIBRARIES} -lpthread)
 
 target_include_directories(${PROJECT_NAME} 
 		PUBLIC
@@ -31,7 +22,6 @@ target_include_directories(${PROJECT_NAME}
 		PRIVATE	
 			$<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/src>
 			$<BUILD_INTERFACE:${${PROJECT_NAME}_SOURCE_DIR}/src>)
-
 # Export the targets to a script
 include(GNUInstallDirs)
 

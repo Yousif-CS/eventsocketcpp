@@ -14,9 +14,9 @@ FetchContent_Declare (
 )
 
 FetchContent_GetProperties(protobuf)
-
+set(protobuf_BUILD_TESTS OFF)
 if (NOT protobuf_POPULATED)
-		#    FetchContent_Populate(protobuf)
-		#add_subdirectory(${protobuf_SOURCE_DIR}/cmake ${protobuf_BINARY_DIR})
-	FetchContent_MakeAvailable(protobuf)
+	FetchContent_Populate(protobuf)
+	add_subdirectory(${protobuf_SOURCE_DIR}/cmake ${protobuf_BINARY_DIR} EXCLUDE_FROM_ALL)
+		#FetchContent_MakeAvailable(protobuf)
 endif()
