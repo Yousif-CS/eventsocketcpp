@@ -8,6 +8,7 @@ set(LIBRARY_OUTPUT_PATH ./lib)
 #				  DEPENDS ${PROTO_SRCS} ${PROTO_HDRS})
 
 add_library(${PROJECT_NAME} STATIC Message.pb.h Message.pb.cc RedBackMessage.cpp)
+add_library(EventSocketCpp::${PROJECT_NAME} ALIAS ${PROJECT_NAME})
 
 #add_dependencies(${PROJECT_NAME} proto_deps)
 
@@ -26,45 +27,4 @@ target_include_directories(${PROJECT_NAME}
 			$<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/src>
 			$<BUILD_INTERFACE:${${PROJECT_NAME}_SOURCE_DIR}/src>)
 
-# Export the targets to a script
-include(GNUInstallDirs)
-
-install(
-	TARGETS ${PROJECT_NAME}
-	EXPORT EventSocketCpp
-	LIBRARY DESTINATION lib
-	ARCHIVE DESTINATION lib
-	RUNTIME DESTINATION bin
-	INCLUDES DESTINATION include
-)
-
-install(DIRECTORY ${${PROJECT_NAME}_SOURCE_DIR}/include/eventsocketcpp
-		DESTINATION include)
-
-# Get all the protobuf out of the build directory
-# (FindProtobuf somehow cannot install them except there so we have to extract them)
-#file (GLOB	Protobuf_files
-#		"${CMAKE_BINARY_DIR}/src/*.pb.h")
-
-#install(FILES
-#		${Protobuf_files}
-#		DESTINATION include/eventsocketcpp)
-#install(FILES
-#		${PROTO_HDRS}
-#		DESTINATION include/eventsocketcpp)
-
-# register package
-export(PACKAGE EventSocketCpp)
-
-install(
-	EXPORT EventSocketCpp
-	FILE
-		EventSocketCppTargets.cmake
-	NAMESPACE
-		EventSocketCpp::
-	DESTINATION
-		lib/cmake
-)
-
-set_target_properties(${PROJECT_NAME} PROPERTIES EXPORT_NAME EventSocketCpp)
 

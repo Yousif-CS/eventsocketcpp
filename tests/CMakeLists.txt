@@ -1,26 +1,11 @@
-cmake_minimum_required(VERSION 3.11)
-project(EventSocketCppTests)
-
-
-
-list(APPEND CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} ~/.local/lib/cmake)
+cmake_minimum_required(VERSION 3.15)
 
 find_package(GTest REQUIRED)
 
-if(NOT TARGET EventSocketCpp::EventSocketCpp)
-	find_package(EventSocketCpp CONFIG REQUIRED)
-endif()
+add_executable(testMessage testMessage.cpp)
 
-file(
-    GLOB_RECURSE
-    TEST_FILES
-    testMessage.cpp
-)
+# To use CTests as a test orchestrator
+add_test(NAME MessageTests COMMAND testMessage)
 
-
-add_executable(${PROJECT_NAME} ${TEST_FILES})
-
-add_test(NAME ${PROJECT_NAME} COMMAND ${PROJECT_NAME})
-
-target_link_libraries(${PROJECT_NAME}
-                    PRIVATE EventSocketCpp::EventSocketCpp GTest::GTest GTest::Main)
+target_link_libraries(testMessage
+		PRIVATE EventSocketCpp::${PROJECT_NAME} GTest::GTest GTest::Main)

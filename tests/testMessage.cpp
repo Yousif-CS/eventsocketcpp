@@ -24,3 +24,19 @@ TEST(MessageTest, HandlesReadsAndWritesStrings){
 
     ASSERT_EQ(str, "Hello");
 }
+
+TEST(MessageTest, HandlesReadsAndWritesNotStrings) {
+	RedBack::Message<EventTypes> message;
+
+	int a = 4; uint32_t b = 3; float c = 3.44;
+
+	message << a << b << c;
+
+	int d = 0; uint32_t e = 0; float f = 0;
+
+	message >> f >> e >> d;
+
+	ASSERT_EQ(c, f);
+	ASSERT_EQ(b, e);
+	ASSERT_EQ(a, d);
+}
