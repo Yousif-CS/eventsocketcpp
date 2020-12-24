@@ -92,6 +92,10 @@ namespace RedBack
                 }
                 
             }
+			
+			std::shared_ptr<Connection<T>> GetConnection() const {
+				return connection;
+			}
 
             void disconnect()
             {

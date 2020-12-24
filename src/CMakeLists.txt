@@ -1,19 +1,22 @@
-cmake_minimum_required(VERSION 3.11.0)
+cmake_minimum_required(VERSION 3.15.0)
 
 set(LIBRARY_OUTPUT_PATH ./lib)
 
-find_package(Protobuf 3.14.0 REQUIRED)
+#find_package(Protobuf CONFIG 3.14.0 REQUIRED)
 
 #add_custom_target(proto_deps
 #				  DEPENDS ${PROTO_SRCS} ${PROTO_HDRS})
 
-add_library(${PROJECT_NAME} Message.pb.h Message.pb.cc RedBackMessage.cpp)
+add_library(${PROJECT_NAME} STATIC Message.pb.h Message.pb.cc RedBackMessage.cpp)
 
 #add_dependencies(${PROJECT_NAME} proto_deps)
 
 target_link_libraries(${PROJECT_NAME}
 		PRIVATE
-		${Protobuf_LIBRARIES} -lpthread)
+		$<BUILD_INTERFACE:libprotobuf>
+		$<BUILD_INTERFACE:libprotobuf-lite>
+		$<BUILD_INTERFACE:libprotoc>
+		-lpthread)
 
 target_include_directories(${PROJECT_NAME} 
 		PUBLIC
@@ -22,6 +25,7 @@ target_include_directories(${PROJECT_NAME}
 		PRIVATE	
 			$<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/src>
 			$<BUILD_INTERFACE:${${PROJECT_NAME}_SOURCE_DIR}/src>)
+
 # Export the targets to a script
 include(GNUInstallDirs)
 
@@ -39,8 +43,8 @@ install(DIRECTORY ${${PROJECT_NAME}_SOURCE_DIR}/include/eventsocketcpp
 
 # Get all the protobuf out of the build directory
 # (FindProtobuf somehow cannot install them except there so we have to extract them)
-file (GLOB	Protobuf_files
-		"${CMAKE_BINARY_DIR}/src/*.pb.h")
+#file (GLOB	Protobuf_files
+#		"${CMAKE_BINARY_DIR}/src/*.pb.h")
 
 #install(FILES
 #		${Protobuf_files}

@@ -38,12 +38,16 @@ namespace RedBack {
 
     };
 	
-	class MessageBodyImp;
 
 	class MessageBody {
 	public:
+		
 		MessageBody();
 		
+		MessageBody(const MessageBody&);
+
+		~MessageBody();
+
 		void setID(uint32_t id);
 
 		void setConfig(uint32_t conf);
@@ -62,7 +66,7 @@ namespace RedBack {
 
 		void set_header_size(uint32_t size);
 
-		uint32_t resize(uint32_t size);
+		void resize(uint32_t size);
 	
 		std::string::const_iterator body_begin() const;
 
@@ -73,6 +77,7 @@ namespace RedBack {
 		const char * body_data();
 
 	private:
+		class MessageBodyImp;
 		std::unique_ptr<MessageBodyImp> messageBodyImp;
 	};
 	
@@ -81,6 +86,8 @@ namespace RedBack {
         
         Message(){
 			messageImp.setConfig(static_cast<uint32_t>(Config::None));
+			messageImp.set_body("");
+			messageImp.set_header_size(0);
 		}
 		
         // Getters

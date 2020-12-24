@@ -3,6 +3,8 @@ project(EventSocketCppTests)
 
 
 
+list(APPEND CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} ~/.local/lib/cmake)
+
 find_package(GTest REQUIRED)
 
 if(NOT TARGET EventSocketCpp::EventSocketCpp)

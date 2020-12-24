@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.11.0)
+cmake_minimum_required(VERSION 3.15.0)
 project(eventsocketcpp VERSION 0.1.0)
 
 enable_testing()
@@ -27,8 +27,8 @@ write_basic_package_version_file(
 	COMPATIBILITY AnyNewerVersion
 )
 
-export (EXPORT EventSocketCpp
-        FILE "${CMAKE_CURRENT_BINARY_DIR}/cmake/EventSocketCppTargets.cmake"
+install (EXPORT EventSocketCpp
+		DESTINATION lib/cmake/# "${CMAKE_CURRENT_BINARY_DIR}/cmake/EventSocketCppTargets.cmake"
         NAMESPACE EventSocketCpp::)
 
 install(

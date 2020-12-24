@@ -7,8 +7,14 @@
 #include "Message.pb.h"
 
 namespace RedBack {
-		class MessageBodyImp {
+		class MessageBody::MessageBodyImp {
 		public:
+			
+			MessageBodyImp(){}
+
+			MessageBodyImp(EventSocket::Message m)
+			:messageImp(m) {}
+
 			EventSocket::MessageHeader* mutable_header(){
 				return messageImp.mutable_header();
 			}
@@ -48,15 +54,23 @@ namespace RedBack {
 		/**
 		* A wrapper class to hide protobuf implementation
 		*/	
+	
 		MessageBody::MessageBody()
 		{
 			messageBodyImp = std::make_unique<MessageBodyImp>();
 		}
+		
+		MessageBody::MessageBody(const MessageBody& messageBody)
+		: messageBodyImp(std::make_unique<MessageBodyImp>(*messageBody.messageBodyImp))
+		{}
 
+		MessageBody::~MessageBody() = default;
+		
 		void MessageBody::setID(uint32_t id)
 		{
 			messageBodyImp->mutable_header()->set_id(id);
 		}
+
 
 		void MessageBody::setConfig(uint32_t conf)
 		{
@@ -98,7 +112,7 @@ namespace RedBack {
 			messageBodyImp->mutable_header()->set_size(size);
 		}
 
-		uint32_t MessageBody::resize(uint32_t size)
+		void MessageBody::resize(uint32_t size)
 		{
 			messageBodyImp->mutable_body()->resize(size);
 		}

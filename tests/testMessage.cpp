@@ -11,24 +11,16 @@ enum class EventTypes {
 };
 
 
-TEST(MessageTest, HandlesReadsAndWrites){
+TEST(MessageTest, HandlesReadsAndWritesStrings){
     RedBack::Message<EventTypes> message;
 
-    int a = 4;
-    float b = 3.5f;
     std::string str = "Hello";
     
-    message << a << b << str;
+    message << str;
 
-    a = 3;
-    b = 4.0f;
     str = "World";
 
-    str.reserve(4);
-    
-    message >> str >> b >> a;
+    message >> str;
 
-    ASSERT_EQ(a, 4);
-    ASSERT_EQ(b, 3.5f);
     ASSERT_EQ(str, "Hello");
 }
