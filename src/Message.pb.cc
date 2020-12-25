@@ -92,7 +92,7 @@ const char descriptor_table_protodef_Message_2eproto[] PROTOBUF_SECTION_VARIABLE
   "\n\rMessage.proto\022\013EventSocket\"9\n\rMessageH"
   "eader\022\n\n\002id\030\001 \002(\r\022\016\n\006config\030\002 \002(\r\022\014\n\004siz"
   "e\030\003 \002(\r\"C\n\007Message\022*\n\006header\030\004 \002(\0132\032.Eve"
-  "ntSocket.MessageHeader\022\014\n\004body\030\005 \002(\t"
+  "ntSocket.MessageHeader\022\014\n\004body\030\005 \002(\014"
   ;
 static const ::PROTOBUF_NAMESPACE_ID::internal::DescriptorTable*const descriptor_table_Message_2eproto_deps[1] = {
 };
@@ -531,14 +531,11 @@ const char* Message::_InternalParse(const char* ptr, ::PROTOBUF_NAMESPACE_ID::in
           CHK_(ptr);
         } else goto handle_unusual;
         continue;
-      // required string body = 5;
+      // required bytes body = 5;
       case 5:
         if (PROTOBUF_PREDICT_TRUE(static_cast<::PROTOBUF_NAMESPACE_ID::uint8>(tag) == 42)) {
           auto str = _internal_mutable_body();
           ptr = ::PROTOBUF_NAMESPACE_ID::internal::InlineGreedyStringParser(str, ptr, ctx);
-          #ifndef NDEBUG
-          ::PROTOBUF_NAMESPACE_ID::internal::VerifyUTF8(str, "EventSocket.Message.body");
-          #endif  // !NDEBUG
           CHK_(ptr);
         } else goto handle_unusual;
         continue;
@@ -580,13 +577,9 @@ failure:
         4, _Internal::header(this), target, stream);
   }
 
-  // required string body = 5;
+  // required bytes body = 5;
   if (cached_has_bits & 0x00000001u) {
-    ::PROTOBUF_NAMESPACE_ID::internal::WireFormat::VerifyUTF8StringNamedField(
-      this->_internal_body().data(), static_cast<int>(this->_internal_body().length()),
-      ::PROTOBUF_NAMESPACE_ID::internal::WireFormat::SERIALIZE,
-      "EventSocket.Message.body");
-    target = stream->WriteStringMaybeAliased(
+    target = stream->WriteBytesMaybeAliased(
         5, this->_internal_body(), target);
   }
 
@@ -603,9 +596,9 @@ size_t Message::RequiredFieldsByteSizeFallback() const {
   size_t total_size = 0;
 
   if (_internal_has_body()) {
-    // required string body = 5;
+    // required bytes body = 5;
     total_size += 1 +
-      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::StringSize(
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::BytesSize(
         this->_internal_body());
   }
 
@@ -623,9 +616,9 @@ size_t Message::ByteSizeLong() const {
   size_t total_size = 0;
 
   if (((_has_bits_[0] & 0x00000003) ^ 0x00000003) == 0) {  // All required fields are present.
-    // required string body = 5;
+    // required bytes body = 5;
     total_size += 1 +
-      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::StringSize(
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::BytesSize(
         this->_internal_body());
 
     // required .EventSocket.MessageHeader header = 4;

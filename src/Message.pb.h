@@ -372,7 +372,7 @@ class Message PROTOBUF_FINAL :
     kBodyFieldNumber = 5,
     kHeaderFieldNumber = 4,
   };
-  // required string body = 5;
+  // required bytes body = 5;
   bool has_body() const;
   private:
   bool _internal_has_body() const;
@@ -382,7 +382,7 @@ class Message PROTOBUF_FINAL :
   void set_body(const std::string& value);
   void set_body(std::string&& value);
   void set_body(const char* value);
-  void set_body(const char* value, size_t size);
+  void set_body(const void* value, size_t size);
   std::string* mutable_body();
   std::string* release_body();
   void set_allocated_body(std::string* body);
@@ -608,7 +608,7 @@ inline void Message::set_allocated_header(::EventSocket::MessageHeader* header) 
   // @@protoc_insertion_point(field_set_allocated:EventSocket.Message.header)
 }
 
-// required string body = 5;
+// required bytes body = 5;
 inline bool Message::_internal_has_body() const {
   bool value = (_has_bits_[0] & 0x00000001u) != 0;
   return value;
@@ -651,7 +651,7 @@ inline void Message::set_body(const char* value) {
   body_.Set(::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{}, ::std::string(value), GetArena());
   // @@protoc_insertion_point(field_set_char:EventSocket.Message.body)
 }
-inline void Message::set_body(const char* value,
+inline void Message::set_body(const void* value,
     size_t size) {
   _has_bits_[0] |= 0x00000001u;
   body_.Set(::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{}, ::std::string(

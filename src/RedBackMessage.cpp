@@ -7,19 +7,32 @@
 #include "Message.pb.h"
 
 namespace RedBack {
+
+		/*
+			A wrapper class that wraps around protobuf implementation
+		*/
 		class MessageBody::MessageBodyImp {
 		public:
 			
-			MessageBodyImp(){}
 
 			MessageBodyImp(EventSocket::Message m)
 			:messageImp(m) {}
+
+			MessageBodyImp()
+			:MessageBodyImp(EventSocket::Message())
+			{}
+
+			// Copy constructor
+			MessageBodyImp(const MessageBodyImp&) = default;
+
+			// Copy assignment
+			MessageBodyImp& operator=(const MessageBodyImp&) = default;
 
 			EventSocket::MessageHeader* mutable_header(){
 				return messageImp.mutable_header();
 			}
 
-			std::string* mutable_body() {
+			std::string * mutable_body() {
 				return messageImp.mutable_body();
 			}
 
@@ -46,6 +59,13 @@ namespace RedBack {
 			void set_body(const std::string& body)
 			{
 				messageImp.set_body(body);
+				messageImp.mutable_header()->set_size(messageImp.body().size());
+			}
+
+			void set_body(const void * buffer, size_t size)
+			{
+				messageImp.set_body(buffer, size);
+				messageImp.mutable_header()->set_size(size);
 			}
 
 		private:
@@ -64,6 +84,11 @@ namespace RedBack {
 		: messageBodyImp(std::make_unique<MessageBodyImp>(*messageBody.messageBodyImp))
 		{}
 
+		MessageBody& MessageBody::operator=(const MessageBody& messageBody)
+		{
+			messageBodyImp = std::make_unique<MessageBodyImp>(*messageBody.messageBodyImp);
+		}
+		
 		MessageBody::~MessageBody() = default;
 		
 		void MessageBody::setID(uint32_t id)
@@ -102,39 +127,27 @@ namespace RedBack {
 			return messageBodyImp->header().size();
 		}
 
-		size_t MessageBody::body_size()
-		{
-			return messageBodyImp->body().size();
-		}
-
 		void MessageBody::set_header_size(uint32_t size)
 		{
 			messageBodyImp->mutable_header()->set_size(size);
 		}
 
-		void MessageBody::resize(uint32_t size)
+		const std::string& MessageBody::body() const
 		{
-			messageBodyImp->mutable_body()->resize(size);
-		}
+			return messageBodyImp->body();
+		}	
 
-		std::string::const_iterator MessageBody::body_begin() const
+		std::string* MessageBody::mutable_body()
 		{
-			return messageBodyImp->body().begin();
+			return messageBodyImp->mutable_body();
 		}
-
-		std::string::const_iterator MessageBody::body_end() const
-		{
-			return messageBodyImp->body().end();
-		}
-
-		const char * MessageBody::body_data()
-		{
-			return messageBodyImp->body().data();
-		}
-
 
 		void MessageBody::set_body(std::string body)
 		{
 			messageBodyImp->set_body(body);
+		}
+		void MessageBody::set_body(const void * buffer, size_t size)
+		{
+			messageBodyImp->set_body(buffer, size);
 		}
 };

@@ -1,4 +1,7 @@
 // A message type that contains a message as well as a header specifies the type of message it is
+#include <sstream>
+#include <fstream>
+#include <iostream>
 
 #ifndef REDBACK_MESSAGE_H
 #define REDBACK_MESSAGE_H
@@ -43,8 +46,12 @@ namespace RedBack {
 	public:
 		
 		MessageBody();
-		
+
+        // Copy constructor
 		MessageBody(const MessageBody&);
+
+        // Copy assignment
+        MessageBody& operator=(const MessageBody&);
 
 		~MessageBody();
 
@@ -62,19 +69,16 @@ namespace RedBack {
 
 		uint32_t header_size();
 
-		size_t body_size();
-
 		void set_header_size(uint32_t size);
-
-		void resize(uint32_t size);
 	
-		std::string::const_iterator body_begin() const;
+        const std::string& body() const;
 
-		std::string::const_iterator body_end() const;
+        std::string * mutable_body();
+
 		
 		void set_body(std::string body);
 
-		const char * body_data();
+        void set_body(const void * buffer, size_t size);
 
 	private:
 		class MessageBodyImp;
@@ -84,12 +88,24 @@ namespace RedBack {
     template<typename T>
     struct Message {
         
+
+        Message(T id)
+        :Message()
+        {    
+            messageImp.setID(static_cast<uint32_t>(id));
+        }
+
         Message(){
 			messageImp.setConfig(static_cast<uint32_t>(Config::None));
 			messageImp.set_body("");
-			messageImp.set_header_size(0);
 		}
 		
+        // Copy assignment
+        Message& operator=(const Message&) = default;
+
+        // Copy constructor
+        Message(const Message&) = default;
+        
         // Getters
         T ID()
         {
@@ -131,7 +147,7 @@ namespace RedBack {
         //Returns the size of the message
         size_t size()
         {
-            return messageImp.body_size();
+            return messageImp.body().size();
         }
 
         //Print out the message to stdout
@@ -151,25 +167,29 @@ namespace RedBack {
 
             // Keep track of the previous size as we will use this to insert data
             size_t i = msg.size();
+            
+            // a temporary buffer
+            std::vector<uint8_t> bytes(msg.messageImp.body().begin(), msg.messageImp.body().end());
+            bytes.resize(i + sizeof(DataType));
 
-            // Resize the vector to contain new data
-            msg.messageImp.resize(msg.size() + sizeof(DataType));
+            memcpy(bytes.data() + i, &data, sizeof(DataType));
 
-            // Actually copy the data into our message
-            std::vector<char> dest;
-            std::copy(msg.messageImp.body_begin(), msg.messageImp.body_end(), std::back_inserter(dest));
-
-            std::memcpy(dest.data() + i, &data, sizeof(DataType));
-
-            std::string payload{dest.data()};
-            msg.messageImp.set_body(std::string(dest.data()));
+            msg.messageImp.set_body(bytes.data(), bytes.size());
 
 			// Update the size;
-            msg.header.size = msg.messageImp.body_size();
-            msg.messageImp.set_header_size(msg.header.size);
+            msg.header.size = msg.messageImp.body().size();
 
             // To chain the operation
             return msg;
+        }
+
+        // Reading a string into the message object
+        // Here we assume we cannot store a mixture of strings and other datatypes
+        // Therefore we need to wipe the whole buffer 
+        friend Message<T>& operator<< (Message<T>& msg, const std::string& data)
+        {
+            msg.messageImp.set_body(data);
+            msg.header.size = msg.messageImp.body().size();
         }
 
         //Dump the buffer data into a datatype of choice;
@@ -183,10 +203,10 @@ namespace RedBack {
             size_t i = msg.size() - sizeof(DataType);
 
             // Read the data into the variable
-            std::memcpy(&data, msg.messageImp.body_data() + i, sizeof(DataType));
+            std::memcpy(&data, msg.messageImp.body().data() + i, sizeof(DataType));
 
             // Resize the vector and adjust the header size;
-            msg.messageImp.resize(i);
+            msg.messageImp.mutable_body()->resize(i);
             msg.header.size = i;
             msg.messageImp.set_header_size(msg.header.size);
             // return the message object for chaining
@@ -199,14 +219,13 @@ namespace RedBack {
             
             data.resize(msg.header.size);
             
-            std::memcpy(&data[0], msg.messageImp.body_data(), msg.header.size);
+            std::memcpy(&data[0], msg.messageImp.body().data(), msg.header.size);
             
             // reset the message buffer            
             msg.messageImp.set_body(std::string());
             msg.header.size = 0;
-            msg.messageImp.set_header_size(0);
 
-            // You cannot chain this operation, so we do not return a string
+            // You cannot chain this operation, so we do not return the message object
         }
     private:
         MessageHeader<T> header {};

@@ -11,5 +11,5 @@ message MessageHeader {
 message Message {
 
     required MessageHeader header = 4;
-    required string body = 5;
+    required bytes body = 5;
 }
