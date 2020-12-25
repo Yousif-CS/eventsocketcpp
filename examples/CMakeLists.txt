@@ -1,14 +1,5 @@
 cmake_minimum_required(VERSION 3.15)
-#project(eventsocketcpp-example)
 
-# dependencies
-#list(APPEND CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} ~/.local/lib/cmake)
-
-#if(NOT TARGET EventSocketCpp::EventSocketCpp)
-#	find_package(EventSocketCpp CONFIG REQUIRED)
-#endif()
-
-# create the target
 add_executable(server server.cpp)
 add_executable(client client.cpp)
 

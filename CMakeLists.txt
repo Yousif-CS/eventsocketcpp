@@ -7,7 +7,6 @@ include(CheckIncludeFile)
 include(CheckIncludeFileCXX)
 include(CheckIncludeFiles)
 
-
 add_subdirectory(thirdparty)
 add_subdirectory(include)
 add_subdirectory(src)
