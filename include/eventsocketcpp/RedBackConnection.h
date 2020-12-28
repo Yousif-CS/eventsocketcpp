@@ -44,7 +44,7 @@ namespace RedBack {
                         websocket::stream_base::timeout::suggested(
                             beast::role_type::server));
                 }
-
+                ws.text(false);
                 ownerType = parent;
             }
 
@@ -60,6 +60,7 @@ namespace RedBack {
                         websocket::stream_base::timeout::suggested(
                         beast::role_type::client));
                 }
+                ws.text(false);
                 ownerType = parent;
             }
             
