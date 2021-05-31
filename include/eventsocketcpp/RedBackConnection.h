@@ -221,11 +221,17 @@ namespace RedBack {
                 ws.async_read(_buffer,
                     [this](std::error_code ec, std::size_t length)
                     {
-                        if (!ec)
-                        {
-                            
+                        if (!ec) {
+
                             // Deserialize the data structure
-                            msgTemporaryIn.ParseFromString(buffers_to_string(this->_buffer.data()));
+                            bool ret = msgTemporaryIn.ParseFromString(buffers_to_string(this->_buffer.data()));
+
+                            // Error parsing the string
+                            if (!ret)
+                            {
+                                std::cerr << "[" << id << "]" << " Error Parsing Message." << std::endl;
+                                return;
+                            }
 
                             addToIncomingMsgQueue();
                         }

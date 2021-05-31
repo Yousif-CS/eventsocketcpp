@@ -109,7 +109,7 @@ namespace RedBack {
 
 		bool MessageBody::ParseFromString(const std::string& data)
 		{
-			messageBodyImp->ParseFromString(data);
+			return messageBodyImp->ParseFromString(data);
 		}
 
 		uint32_t MessageBody::header_id()

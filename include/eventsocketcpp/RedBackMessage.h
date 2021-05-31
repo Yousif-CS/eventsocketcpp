@@ -137,11 +137,18 @@ namespace RedBack {
 
         bool ParseFromString(const std::string& data)
         {
-            messageImp.ParseFromString(data);
+            bool ret = messageImp.ParseFromString(data);
+
+            // Crude error check :)
+            if (!ret)
+                return ret;
+
             // update the header information
             header.id = T(messageImp.header_id());
             header.config = Config(messageImp.header_config());
             header.size = messageImp.header_size();
+
+            return true;
         }
 
         //Returns the size of the message

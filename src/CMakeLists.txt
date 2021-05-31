@@ -18,7 +18,7 @@ cmake_minimum_required(VERSION 3.15.0)
 
 # Make it a dependency
 
-find_package(Protobuf 3.14.0 REQUIRED)
+#find_package(Protobuf 3.14.0 REQUIRED)
 
 add_library(${PROJECT_NAME} STATIC Message.pb.cc Message.pb.h RedBackMessage.cpp)
 
@@ -37,5 +37,3 @@ target_include_directories(${PROJECT_NAME}
 		
 # To avoid name clashes
 add_library(EventSocketCpp::${PROJECT_NAME} ALIAS ${PROJECT_NAME})
-		
-		
