@@ -43,7 +43,7 @@ namespace RedBack {
 
 			bool ParseFromString(const std::string& data)
 			{
-				messageImp.ParseFromString(data);
+				return messageImp.ParseFromString(data);
 			}
 
 			const std::string& body() const 
