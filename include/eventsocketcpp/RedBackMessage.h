@@ -207,9 +207,11 @@ namespace RedBack {
             static_assert(std::is_standard_layout<DataType>::value, "Data is too complex to be dumped into message buffer");
 
             // Save the location which points to the start of the memory to be read
-            size_t i = msg.size() - sizeof(DataType);
+            int i = msg.size() - sizeof(DataType);
 
-            // Read the data into the variable
+            if (i < 0)
+                throw std::runtime_error("There is not enough data to read");
+
             std::memcpy(&data, msg.messageImp.body().data() + i, sizeof(DataType));
 
             // Resize the vector and adjust the header size;
