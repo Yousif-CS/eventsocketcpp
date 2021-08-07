@@ -64,3 +64,19 @@ TEST(MessageTest, SerializingAndDeserializing) {
 	ASSERT_EQ(b, e);
 	ASSERT_EQ(a, d);
 }
+
+TEST(MessageTest, CannotReadWhenNotEnoughData) {
+    RedBack::Message<EventTypes> message(EventTypes::Message);
+
+
+    int a = 4;
+    int b = 0;
+    message << a;
+    message >> b;
+
+    auto invalidFunc = [&]() {
+        message >> b;
+    };
+
+    ASSERT_THROW(invalidFunc(), std::runtime_error);
+}
