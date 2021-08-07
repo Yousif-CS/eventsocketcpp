@@ -79,12 +79,15 @@ namespace RedBack {
             void SetID(uint32_t _id) { id = _id; }
 
             // Connect to a server given the hostname and the port.
-            void connectToServer(boost::asio::ip::tcp::resolver::results_type& endpoints, std::function<void(void)> clientOnConnect){
+            void connectToServer(boost::asio::ip::tcp::resolver::results_type& endpoints, std::string urlPath, std::function<void(void)> clientOnConnect){
                 
                 // Does not make sense for a server to connect to another 
                 if (ownerType == owner::server){
                     return;
                 }
+
+                // To connect to a specific url path
+                _urlPath = urlPath;
 
                 // Set the timeout for the operation
                 beast::get_lowest_layer(ws).expires_after(std::chrono::seconds(30));
@@ -194,7 +197,7 @@ namespace RedBack {
                 if (ownerType == owner::server)
                     return;
                     
-                ws.async_handshake(hostname, "/",
+                ws.async_handshake(hostname, _urlPath,
                 [this, clientOnConnect](std::error_code ec){
                     
                     if (!ec){
@@ -356,5 +359,8 @@ namespace RedBack {
         private:
             // buffer to temporarily read into
             beast::flat_buffer _buffer;
+
+            // The subprotocol you want to connect to.
+            std::string _urlPath{"/"};
     };
 } // RedBack

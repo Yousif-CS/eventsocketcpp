@@ -26,9 +26,16 @@ namespace RedBack
                 disconnect();
             }
 
-            // Connect to a server given the host and port
-            // Returns true if the operation is successful
-            bool connect(std::string host, uint16_t port)
+            /**
+             * Connect to an eventsocket server
+             *
+             * @param host: The hostname or IP
+             * @param port: The port number the server is listening on
+             * @param urlPath: The url path that accepts websocket connections
+             *
+             * @return: true if the operation succeeded, false otherwise.
+             * */
+            bool connect(std::string host, uint16_t port, std::string urlPath = "/")
             {
                 try 
                 {
@@ -38,13 +45,13 @@ namespace RedBack
 
                     // Resolve and connect
                     resolver.async_resolve(host, std::to_string(port),
-                    [this](boost::system::error_code ec, boost::asio::ip::tcp::resolver::results_type endpoints){
+                    [=](boost::system::error_code ec, boost::asio::ip::tcp::resolver::results_type endpoints){
 
                         // Create the connection
                         connection = std::make_shared<Connection<T>>(Connection<T>::owner::client, asioContext, qMessagesIn);
 
                         // Connect to the endpoint
-                        connection->connectToServer(endpoints, [this](){ OnConnect(); });
+                        connection->connectToServer(endpoints, urlPath, [this](){ OnConnect(); });
 
                     });
 
